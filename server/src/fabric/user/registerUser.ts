@@ -51,6 +51,7 @@ export async function registerUser(user: User): Promise<boolean>{
             mspId: 'Org1MSP',
             type: 'X.509',
         };
+        console.log(enrollment.certificate.split('\r\n'));
         await wallet.put(user.identityCardNumber, x509Identity);
         const isRegisted = await createUser(user, wallet, ccp);
         return isRegisted;
@@ -80,7 +81,7 @@ async function createUser(user: User, wallet: Wallet, ccp: any): Promise<boolean
         const network = await gateway.getNetwork('mychannel');
         const contract = await network.getContract("CRChaincode", "User");
 
-        const transaction = await contract.submitTransaction("createUser", user.UID, user.password, user.fullName, user.phoneNumber, user.dateOfBirth, user.ward, user.identityCardNumber, user.role);
+        const transaction = await contract.submitTransaction("createUser", user.id, user.password, user.fullName, user.phoneNumber, user.dateOfBirth, user.ward, user.identityCardNumber, user.role);
         console.log(`User ${user.identityCardNumber} (${user.fullName}) has been registed`);
         return true
     } catch (error) {

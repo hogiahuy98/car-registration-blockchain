@@ -4,7 +4,7 @@
 
 export class User {
 
-    public UID: string;
+    public id: string;
     public fullName: string;
     public ward: string;
     public dateOfBirth: string;
@@ -14,5 +14,5 @@ export class User {
     public password: string;
     public createTime?: string;
     public updateTime?: string;
-
+    public docType: string;
 }

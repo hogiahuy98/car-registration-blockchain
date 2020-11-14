@@ -1,6 +1,5 @@
-export interface User {
-    
-    UID: string;
+export interface User {  
+    id: string;
     fullName: string;
     ward: string;
     dateOfBirth: string;
@@ -9,6 +8,5 @@ export interface User {
     role: string;
     password: string;
     createTime?: string;
-    updateTime?: string;    
-    
+    updateTime?: string;     
 }

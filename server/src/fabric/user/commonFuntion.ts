@@ -10,7 +10,6 @@ export function getCcp(): any {
 
 export async function getWallet(): Promise<Wallet> {
     const walletPath = path.join(process.cwd() ,'wallet');
-    console.log(walletPath);
     return await Wallets.newFileSystemWallet(walletPath);
 }
 

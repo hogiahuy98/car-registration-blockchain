@@ -1,5 +1,5 @@
 export interface Car {
-    UID: string;
+    id: string;
     registrationNumber?: string;
     brand: string;
     model: string;

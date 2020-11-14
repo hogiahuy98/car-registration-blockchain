@@ -16,13 +16,10 @@ export class UserContract extends Contract {
     // 0: UID, 1: password, 2:fullName, 3: phoneNumber, 4: dateOfBirth, 5: ward, 6: identityCardNumber, 7: role
     public async createUser(ctx: Context, ...params: string[]) {
         console.log('START========CREATE-USER===========');
-
         const user: User = this.paramsToUser(params);
         user.createTime = new Date().toString();
         user.updateTime = new Date().toString();
-            
-        await ctx.stub.putState(user.UID, Buffer.from(JSON.stringify(user)));
-
+        await ctx.stub.putState(user.id, Buffer.from(JSON.stringify(user)));
         console.log("END========CREATE-USER===========");
     }
 
@@ -38,7 +35,7 @@ export class UserContract extends Contract {
         const modifyUser: User = this.paramsToUser(params);
         modifyUser.createTime = currentUser.createTime;
         modifyUser.updateTime = new Date().toString();
-        await ctx.stub.putState(modifyUser.UID, Buffer.from(JSON.stringify(modifyUser)));
+        await ctx.stub.putState(modifyUser.id, Buffer.from(JSON.stringify(modifyUser)));
     }
 
 
@@ -113,7 +110,7 @@ export class UserContract extends Contract {
 
     public paramsToUser(params: string[]): User{
         return {
-            UID: params[0],
+            id: params[0],
             password: params[1],
             fullName: params[2],
             phoneNumber: params[3],
@@ -121,6 +118,7 @@ export class UserContract extends Contract {
             ward: params[5],
             identityCardNumber: params[6],
             role: params[7],
+            docType: 'user',
         }
     } 
 
@@ -128,19 +126,20 @@ export class UserContract extends Contract {
     public async initLedger(ctx: Context) {
 
         const user: User= {
-            UID: "test041",
-            fullName: "test",
-            ward: "TEST",
+            id: "CSGT",
+            fullName: "csgt",
+            ward: "Ninh Kieu",
             dateOfBirth: "TEST",
             identityCardNumber: "TEST",
-            role: "TEST",
-            password: "test",
+            role: "police",
+            password: "admin",
             createTime: new Date().toString(),
             updateTime: new Date().toString(),
             phoneNumber: "test",
+            docType: 'user'
         };
 
-        await ctx.stub.putState(user.UID, Buffer.from(JSON.stringify(user)));
+        await ctx.stub.putState(user.id, Buffer.from(JSON.stringify(user)));
 
     }
 

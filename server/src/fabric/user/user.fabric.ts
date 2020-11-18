@@ -2,26 +2,27 @@ import { getUserContract } from './commonFuntion';
 
 export { registerUser } from './registerUser';
 export { User } from './userInterface';
-import { User } from './userInterface'
 
 
-export async function getUserByIdentityCard(identityCardNumber: any): Promise<any> {
+export async function getUserByPhoneNumber(phoneNumber: any): Promise<any> {
     try {
-        const contract = await getUserContract(identityCardNumber);
-        const rs = await contract.evaluateTransaction('queryUserByIdentityCard', identityCardNumber);
-        return JSON.parse(rs.toString())[0];
+        const contract = await getUserContract(phoneNumber);
+        const rs = await contract.evaluateTransaction('queryUserByPhoneNumber', phoneNumber);
+        const users = JSON.parse(rs.toString());
+        if(users.length === 0) return undefined;
+        return users[0];
     } catch (error) {
-        console.log(error);
+        throw error;
     }
 }
 
 
-export async function getId(identityCardNumber: any): Promise<any> {
+export async function getId(phoneNumber: any): Promise<any> {
     try {
-        const contract = await getUserContract(identityCardNumber);
+        const contract = await getUserContract(phoneNumber);
         const rs = await contract.evaluateTransaction('getUserId');
         return rs.toString();
     } catch (error) {
-        console.log(error)
+        throw new Error(error);
     }
 }

@@ -1,8 +1,9 @@
 import { Router, Request, Response } from 'express';
-import { User, registerUser, getUserByIdentityCard, getId } from '../fabric/user/user.fabric';
+import { User, registerUser, getUserByPhoneNumber, getId } from '../fabric/user/user.fabric';
 import * as bcrypt from 'bcrypt';
 import uid from 'uid';
 import * as jwt from 'jsonwebtoken';
+import { FABRIC_ERROR_CODE } from '../constant';
 
 const router = Router();
 
@@ -63,25 +64,34 @@ router.post('/registry/police',async (req: Request, res: Response) => {
 
 
 router.post('/login', async (req: Request, res: Response) => {
-    const user = await getUserByIdentityCard(req.body.identityCardNumber);
-    const isCorrectPassword = await bcrypt.compare(req.body.password, user.Record.password);
-    if(!isCorrectPassword) {
-        const rs = {
-            success: false,
-            message: "Incorrect identity card or password"
-        };
-        return res.status(401).send(rs);
-    }
-    delete user.Record.password;
-    const token = jwt.sign(user.Record, jwt_secret)
-    const rs = {
-        success: true,
-        data: {
-            user: user.Record,
-            token: token
+    try {
+        console.log(req.body)
+        const user = await getUserByPhoneNumber(req.body.phoneNumber);
+        const isCorrectPassword = await bcrypt.compare(req.body.password, user.Record.password);
+        if(!isCorrectPassword) {
+            const rs = {
+                success: false,
+                message: "Incorrect identity card or password"
+            };
+            return res.status(401).send(rs);
         }
+        delete user.Record.password;
+        const token = jwt.sign(user.Record, jwt_secret)
+        const rs = {
+            success: true,
+            data: {
+                user: user.Record,
+                token: token
+            }
+        }
+        res.status(200).json(rs);
+    } catch (error) {
+        if (error === FABRIC_ERROR_CODE.IDENTITY_NOT_FOUND_IN_WALLET)
+            return res.status(403).send({
+                success: false,
+                message: "Incorrect identity card or password"
+            })
     }
-    res.status(200).json(rs);
 });
 
 

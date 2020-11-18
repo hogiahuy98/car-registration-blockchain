@@ -12,14 +12,14 @@ export async function getWallet(): Promise<Wallet> {
     return await Wallets.newFileSystemWallet(walletPath);
 }
 
-export async function getCarContract(identityCardNumber: any): Promise<Contract> {
+export async function getCarContract(phoneNumber: any): Promise<Contract> {
     const ccp = getCcp();
     const wallet = await getWallet();
-    const identity = await wallet.get(identityCardNumber);
+    const identity = await wallet.get(phoneNumber);
     const gateway = new Gateway();
     await gateway.connect(ccp, {
         wallet,
-        identity: identityCardNumber,
+        identity: phoneNumber,
         discovery: {
             asLocalhost: true,
             enabled: true,

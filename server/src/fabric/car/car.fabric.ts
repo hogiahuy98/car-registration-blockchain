@@ -3,9 +3,9 @@ import { Car } from './carInterface';
 export { Car } from './carInterface'
 
 
-export async function registryCar(car: Car, identityCardNumber: string) {
+export async function registryCar(car: Car, phoneNumber: string) {
     try {
-        const contract = await getCarContract(identityCardNumber);
+        const contract = await getCarContract(phoneNumber);
         const TxID = await contract.submitTransaction('registryCar', car.id, car.vin, car.brand, car.model, car.model);
         return { success: true, result: { TxID: TxID.toString() } };
     } catch (error) {
@@ -14,9 +14,9 @@ export async function registryCar(car: Car, identityCardNumber: string) {
 }
 
 
-export async function getAllCars(identityCardNumber: string) {
+export async function getAllCars(phoneNumber: string) {
     try {
-        const contract = await getCarContract(identityCardNumber);
+        const contract = await getCarContract(phoneNumber);
         const carsAsBuffer = await contract.evaluateTransaction('queryAllCars');
         const cars = JSON.parse(carsAsBuffer.toString());
         return { success: true, result: { cars } };
@@ -26,9 +26,9 @@ export async function getAllCars(identityCardNumber: string) {
 }
 
 
-export async function getCarById(identityCardNumber: string, carId: string) {
+export async function getCarById(phoneNumber: string, carId: string) {
     try {
-        const contract = await getCarContract(identityCardNumber);
+        const contract = await getCarContract(phoneNumber);
         const carsAsBuffer = await contract.evaluateTransaction('queryCarById', carId);
         const car = JSON.parse(carsAsBuffer.toString());
         return { success: true, result: { car } };
@@ -38,9 +38,9 @@ export async function getCarById(identityCardNumber: string, carId: string) {
 }
 
 
-export async function getProcesscingCars(identityCardNumber: string) {
+export async function getProcesscingCars(phoneNumber: string) {
     try {
-        const contract = await getCarContract(identityCardNumber);
+        const contract = await getCarContract(phoneNumber);
         const processingCarsAsBuffer = await contract.evaluateTransaction('queryAllProcessingCar');
         const processingCars = JSON.parse(processingCarsAsBuffer.toString());
         if (processingCars.length > 0) {
@@ -55,9 +55,9 @@ export async function getProcesscingCars(identityCardNumber: string) {
 }
 
 
-export async function acceptCarRegistration(carId: string, registrationNumber: string, identityCardNumber: string) {
+export async function acceptCarRegistration(carId: string, registrationNumber: string, phoneNumber: string) {
     try {
-        const contract = await getCarContract(identityCardNumber);
+        const contract = await getCarContract(phoneNumber);
         const TxID = await contract.submitTransaction('acceptRegistration', carId, registrationNumber);
         if (TxID.toString().length !== 0) {
             return { success: true, result: { TxID: TxID.toString() }};
@@ -70,9 +70,9 @@ export async function acceptCarRegistration(carId: string, registrationNumber: s
     }
 }
 
-export async function rejectCarRegistration(carId: string, registrationNumber: string, identityCardNumber: string) {
+export async function rejectCarRegistration(carId: string, registrationNumber: string, phoneNumber: string) {
     try {
-        const contract = await getCarContract(identityCardNumber);
+        const contract = await getCarContract(phoneNumber);
         const TxID = await contract.submitTransaction('rejectRegistration', carId);
         if (TxID.toString().length !== 0) {
             return { success: true, result: { TxID: TxID.toString() }};
@@ -85,9 +85,9 @@ export async function rejectCarRegistration(carId: string, registrationNumber: s
     }
 }
 
-export async function isOwnerOfCar(carId: string, userId: string, identityCardNumber: string): Promise<any> {
+export async function isOwnerOfCar(carId: string, userId: string, phoneNumber: string): Promise<any> {
     try {
-        const contract = await getCarContract(identityCardNumber);
+        const contract = await getCarContract(phoneNumber);
         const resultByte = await contract.evaluateTransaction('isOwnerOfCar', carId, userId);
         const result = resultByte.toString();
         console.log(result);
@@ -100,9 +100,9 @@ export async function isOwnerOfCar(carId: string, userId: string, identityCardNu
     }
 }
 
-export async function requestChangeOwner(carId: string, identityCardNumber: string, newOwner: string, currentOwner: string) {
+export async function requestChangeOwner(carId: string, phoneNumber: string, newOwner: string, currentOwner: string) {
     try {
-        const contract = await getCarContract(identityCardNumber);
+        const contract = await getCarContract(phoneNumber);
         const TxIDByte = await contract.submitTransaction('createRequestToChangeOwner', carId, currentOwner, newOwner);
         const TxID = TxIDByte.toString();
         if( TxID !== "" || TxID.length !== 0) {
@@ -115,3 +115,5 @@ export async function requestChangeOwner(carId: string, identityCardNumber: stri
         return { success: false, result: { msg: error } }
     }
 }
+
+

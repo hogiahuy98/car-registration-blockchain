@@ -1,9 +1,7 @@
-import { Tooltip, Tag } from 'antd';
-import { QuestionCircleOutlined } from '@ant-design/icons';
-import React from 'react';
-import { connect, SelectLang } from 'umi';
-import Avatar from './AvatarDropdown';
-import HeaderSearch from '../HeaderSearch';
+import { Button } from 'antd';
+import { QuestionCircleOutlined, LogoutOutlined } from '@ant-design/icons';
+import React, { useContext } from 'react';
+import { connect, SelectLang, history } from 'umi';
 import styles from './index.less';
 const ENVTagColor = {
   dev: 'orange',
@@ -11,61 +9,25 @@ const ENVTagColor = {
   pre: '#87d068',
 };
 
+import AuthContext from '@/context/AuthContext';
+
 const GlobalHeaderRight = (props) => {
   const { theme, layout } = props;
+  const { logout } = useContext(AuthContext);
   let className = styles.right;
 
   if (theme === 'dark' && layout === 'top') {
     className = `${styles.right}  ${styles.dark}`;
   }
 
+  const handleLogout = () => {
+    logout();
+    history.push('/index');
+  }
+
   return (
     <div className={className}>
-      <HeaderSearch
-        className={`${styles.action} ${styles.search}`}
-        placeholder="站内搜索"
-        defaultValue="umi ui"
-        options={[
-          {
-            label: <a href="https://umijs.org/zh/guide/umi-ui.html">umi ui</a>,
-            value: 'umi ui',
-          },
-          {
-            label: <a href="next.ant.design">Ant Design</a>,
-            value: 'Ant Design',
-          },
-          {
-            label: <a href="https://protable.ant.design/">Pro Table</a>,
-            value: 'Pro Table',
-          },
-          {
-            label: <a href="https://prolayout.ant.design/">Pro Layout</a>,
-            value: 'Pro Layout',
-          },
-        ]} // onSearch={value => {
-        //   //console.log('input', value);
-        // }}
-      />
-      <Tooltip title="使用文档">
-        <a
-          style={{
-            color: 'inherit',
-          }}
-          target="_blank"
-          href="https://pro.ant.design/docs/getting-started"
-          rel="noopener noreferrer"
-          className={styles.action}
-        >
-          <QuestionCircleOutlined />
-        </a>
-      </Tooltip>
-      <Avatar />
-      {REACT_APP_ENV && (
-        <span>
-          <Tag color={ENVTagColor[REACT_APP_ENV]}>{REACT_APP_ENV}</Tag>
-        </span>
-      )}
-      <SelectLang className={styles.action} />
+      <Button type='link' danger onClick={handleLogout}>Đăng xuất<LogoutOutlined /></Button>
     </div>
   );
 };

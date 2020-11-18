@@ -1,55 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import AuthContext from '../context/AuthContext';
 
-const AuthLayout = ({ children }) => {
-    const login = ({token, role, userInfo}) => {
-        setAuth(prevState => {
+const defaultAuth = {
+    isAuth: false,
+    token: null,
+    role: null,
+    userInfo: {},
+}
+
+const AuthLayout = (props) => {
+    const localAuth = JSON.parse(localStorage.getItem('auth'))
+    const [auth, setAuth] = useState(localAuth ? localAuth : defaultAuth);
+    const login = async ({token, role, userInfo}) => {
+        await setAuth(prevState => {
             return {
+                ...prevState,
                 isAuth: true,
                 token: token,
                 role: role,
                 userInfo: userInfo,
-                ...prevState
             }
         });
     }
 
+    useEffect(() => localStorage.setItem('auth', JSON.stringify(auth)),[auth]);
 
     const logout = () => {
         setAuth(prevState => {
             return {
+                ...prevState,
                 isAuth: false,
                 token: "",
                 role: "",
-                userInfo: {},
-                ...prevState
+                userInfo: {}
             }
         });
+        localStorage.removeItem('auth');
     }
 
-    // useEffect(() => {
-    //     console.log(auth);
-    // }, [auth])
-
-
-    const [auth, setAuth] = useState({
-        isAuth: false,
-        token: "",
-        role: "",
-        userInfo: {},
-        login,
-        logout,
-    });
-
     return (
-        <AuthContext.Provider value={auth}>
-            {children}
+        <AuthContext.Provider value={{auth, login, logout}}>
+            {props.children}
         </AuthContext.Provider>
     )
 }
 
-const Test = () => {
-    
-}
 
 export default AuthLayout;

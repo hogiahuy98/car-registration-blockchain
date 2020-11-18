@@ -49,10 +49,10 @@ export class UserContract extends Contract {
     }
 
 
-    public async queryUserByIdentityCard(ctx: Context, identityCardNumber: string): Promise<string>{
+    public async queryUserByPhoneNumber(ctx: Context, phoneNumber: string): Promise<string>{
         const queryString: any = {};
         queryString.selector = {};
-        queryString.selector.identityCardNumber = identityCardNumber;
+        queryString.selector.phoneNumber = phoneNumber;
         const queryResult = await this.getQueryResultForQueryString(ctx, JSON.stringify(queryString));   
         return queryResult;
     }
@@ -103,8 +103,6 @@ export class UserContract extends Contract {
 
     public async readHistoryOfUser(ctx: Context, userId: string) {
         const history = await ctx.stub.getHistoryForKey(userId);
-        history.next()
-        console.log(history);
     }
 
 

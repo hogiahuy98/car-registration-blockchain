@@ -2,17 +2,9 @@ import { Button, Result } from 'antd';
 import React from 'react';
 import { history } from 'umi';
 
-const NoFoundPage = () => (
-  <Result
-    status="404"
-    title="404"
-    subTitle="Sorry, the page you visited does not exist."
-    extra={
-      <Button type="primary" onClick={() => history.push('/')}>
-        Back Home
-      </Button>
-    }
-  />
-);
+const NoFoundPage = () => {
+  history.push('/index');
+  return (<div></div>)
+};
 
 export default NoFoundPage;

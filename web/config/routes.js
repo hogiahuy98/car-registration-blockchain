@@ -1,19 +1,19 @@
 export default [
   {
-    path: '/user',
-    component: '../layouts/UserLayout',
-    routes: [
-      {
-        name: 'login',
-        path: '/user/login',
-        component: './user/login',
-      },
-    ],
-  },
-  {
     path: '/',
     component: '../layouts/AuthLayout',
     routes: [
+      {
+        name: 'login',
+        path: '/index',
+        component: '../layouts/BlankLayout',
+        routes: [
+          {
+            path: '/index',
+            component: './Landing'
+          }
+        ]
+      },
       {
         path: '/',
         component: '../layouts/BasicLayout',
@@ -49,15 +49,6 @@ export default [
             icon: 'table',
             path: '/list',
             component: './ListTableList',
-          },{
-            name: 'hello',
-            path: '/hello',
-            component: './Hello'
-          },
-          {
-            name: 'Lo con cac',
-            path: '/locc',
-            component: './Hello'
           },
           {
             component: './404',

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { User, registerUser, getUserByIdentityCard, getId } from '../fabric/user/user.fabric';
+import { User, registerUser, getUserByPhoneNumber, getId } from '../fabric/user/user.fabric';
 import * as bcrypt from 'bcrypt';
 import uid from 'uid';
 import * as jwt from 'jsonwebtoken';

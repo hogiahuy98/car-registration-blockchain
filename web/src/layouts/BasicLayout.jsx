@@ -4,14 +4,17 @@
  * https://github.com/ant-design/ant-design-pro-layout
  */
 import ProLayout, { DefaultFooter } from '@ant-design/pro-layout';
-import React, { useEffect, useMemo, useRef } from 'react';
-import { Link, useIntl, connect, history } from 'umi';
+import React, { useContext } from 'react';
+import { Link, useIntl, connect, history, Redirect } from 'umi';
 import { GithubOutlined } from '@ant-design/icons';
 import { Result, Button } from 'antd';
 import Authorized from '@/utils/Authorized';
 import RightContent from '@/components/GlobalHeader/RightContent';
 import { getMatchMenu } from '@umijs/route-utils';
 import logo from '../assets/logo.svg';
+
+import AuthContext from '@/context/AuthContext';
+
 const noMatch = (
   <Result
     status={403}
@@ -28,14 +31,16 @@ const noMatch = (
 /**
  * use Authorized check all menu item
  */
-const menuDataRender = (menuList) =>
-  menuList.map((item) => {
+const menuDataRender = (menuList) =>{
+  const role = 'admin';
+  return menuList.map((item) => {
     const localItem = {
       ...item,
       children: item.children ? menuDataRender(item.children) : undefined,
     };
     return localItem;
   });
+}
 
 const defaultFooterDom = (
   <DefaultFooter
@@ -64,15 +69,15 @@ const defaultFooterDom = (
 );
 
 const BasicLayout = (props) => {
+  const { auth } = useContext(AuthContext);
   const {
-    dispatch,
     children,
     settings,
-    location = {
-      pathname: '/',
-    },
   } = props;
   const { formatMessage } = useIntl();
+  if (!auth.isAuth) {
+    return <Redirect to='/index'></Redirect>
+  }
   return (
     <ProLayout
       logo={logo}
@@ -107,6 +112,7 @@ const BasicLayout = (props) => {
       footerRender={() => defaultFooterDom}
       menuDataRender={menuDataRender}
       rightContentRender={() => <RightContent />}
+      loading={true}
     >
         {children}
     </ProLayout>

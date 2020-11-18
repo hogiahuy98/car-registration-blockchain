@@ -109,10 +109,10 @@ export class CarContract extends Contract {
     }
 
 
-    public async queryPendingCarByOwnerIdentityCardNumber(ctx: Context, ownerIdentityCardNumber: string): Promise<string>{
+    public async queryPendingCarByOwnerPhoneNumber(ctx: Context, phoneNumber: string): Promise<string>{
         const queryString: any = {}
         queryString.selector = {
-            onwer: ownerIdentityCardNumber,
+            onwer: phoneNumber,
             registrationState: REGISTRATION_STATE.PENDING,
         }
         const queryResult = await this.getQueryResultForQueryString(ctx, JSON.stringify(queryString));
@@ -227,11 +227,11 @@ export class CarContract extends Contract {
     }
 
 
-    public async isOwnerOfCar(ctx: Context, carId: string, userId: string): Promise<string>{
+    public async isOwnerOfCar(ctx: Context, carId: string, phoneNumber: string): Promise<string>{
         const queryString: any = {};
         queryString.selector = {
             id: carId,
-            onwer: userId,
+            onwer: phoneNumber,
             docType: DOCTYPE,
         }
         const queryResult = await this.queryResult(ctx, JSON.stringify(queryString));

@@ -1,7 +1,8 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { Wallets, X509Identity, Wallet, Gateway, Contract } from 'fabric-network';
-import { User } from './userInterface'
+import { Wallets, Wallet, Gateway, Contract } from 'fabric-network';
+import { FABRIC_ERROR_CODE } from '../../constant';
+// import { User } from './userInterface';
 
 export function getCcp(): any {
     const ccpPath = path.resolve(__dirname, '..', '..', '..','..','test-network','organizations','peerOrganizations','org1.example.com', 'connection-org1.json');
@@ -13,14 +14,17 @@ export async function getWallet(): Promise<Wallet> {
     return await Wallets.newFileSystemWallet(walletPath);
 }
 
-export async function getUserContract(identityCardNumber: any): Promise<Contract> {
+export async function getUserContract(phoneNumber: any): Promise<Contract> {
     const ccp = getCcp();
     const wallet = await getWallet();
-    const identity = await wallet.get(identityCardNumber);
+    const identity = await wallet.get(phoneNumber);
+    if (typeof identity === 'undefined') {
+        throw FABRIC_ERROR_CODE.IDENTITY_NOT_FOUND_IN_WALLET;
+    }
     const gateway = new Gateway();
     await gateway.connect(ccp, {
         wallet,
-        identity: identityCardNumber,
+        identity: phoneNumber,
         discovery: {
             asLocalhost: true,
             enabled: true,

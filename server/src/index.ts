@@ -4,6 +4,7 @@ import userRouter from './api/user.api';
 import carRouter from './api/car.api';
 import authRouter from './api/auth.api';
 import * as dotenv from 'dotenv';
+import cors from 'cors';
 // import { authentication } from './middleware/auth.middleware'
 
 declare global {
@@ -20,6 +21,7 @@ const app: Application = express();
 dotenv.config()
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cors());
 // app.use(authentication);
 
 app.use('/users', userRouter);

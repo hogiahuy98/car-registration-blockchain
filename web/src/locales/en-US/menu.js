@@ -1,7 +1,7 @@
 export default {
   'menu.welcome': 'Welcome',
   'menu.more-blocks': 'More Blocks',
-  'menu.home': 'Home',
+  'menu.home': 'Trang chủ',
   'menu.admin': 'Admin',
   'menu.admin.sub-page': 'Sub-Page',
   'menu.login': 'Login',
@@ -49,4 +49,5 @@ export default {
   'menu.editor.flow': 'Flow Editor',
   'menu.editor.mind': 'Mind Editor',
   'menu.editor.koni': 'Koni Editor',
+  'menu.RegistryCar': 'Đăng ký xe',
 };

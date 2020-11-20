@@ -20,7 +20,7 @@ enquireScreen((b) => {
 const { location = {} } = typeof window !== 'undefined' ? window : {};
 
 class Home extends React.Component {
-  
+  static contextType = AuthContext;
 
   constructor(props) {
     super(props);

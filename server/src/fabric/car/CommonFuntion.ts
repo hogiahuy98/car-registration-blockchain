@@ -26,6 +26,6 @@ export async function getCarContract(phoneNumber: any): Promise<Contract> {
         },
     });
     const channel = await gateway.getNetwork('mychannel');
-    const contract = channel.getContract('CRChaincode', 'Car');
+    const contract = channel.getContract('CRChaincode', 'car');
     return contract;
 }

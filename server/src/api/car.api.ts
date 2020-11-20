@@ -7,7 +7,8 @@ import {registryCar,
         rejectCarRegistration,
         getCarById,
         isOwnerOfCar, 
-        requestChangeOwner} from '../fabric/car/car.fabric';
+        requestChangeOwner,
+        queryCars} from '../fabric/car/Car.fabric';
 import uid from 'uid';
 import { authentication } from '../middleware/auth.middleware'
 
@@ -16,19 +17,62 @@ const router = Router();
 // /car/ POST
 router.post('/', authentication, async (req: Request, res: Response) => {
     try {
-        const identityCardNumber = req.user.identityCardNumber;
+        const userPhoneNumber = req.user.phoneNumber;
         const car: Car = {
-            id: uid(8),
+            id: uid(16),
             brand: req.body.brand,
             color: req.body.color,
             model: req.body.model,
-            vin: req.body.vin,
-            owner: req.user.id
+            year: req.body.year,
+            owner: req.user.phoneNumber,
+            chassisNumber: req.body.chassisNumber,
+            engineNumber: req.body.engineNumber,
+            capality: req.body.capality,
         }
-        const registryResult = await registryCar(car, identityCardNumber);
-        return res.json({ registryResult });
+        const registryResult = await registryCar(car, userPhoneNumber);
+        return res.json({ ...registryResult });
     } catch (error) {
         res.sendStatus(400);
+    }
+})
+
+
+router.get('/checkEngineNumber', authentication, async (req: Request, res: Response) => {
+    const engineNumber = req.query.en;
+    const queryString: any = {};
+    queryString.selector = {
+        docType: 'car',
+        engineNumber
+    }
+    try {
+        const results = await queryCars(req.user.phoneNumber, JSON.stringify(queryString));
+        if (results.length === 0) {
+            return res.send({ valid: true});
+        }
+        else return res.send({ valid: false });
+    } catch (error) {
+        console.log(error);
+        return res.send( { valid: false });
+    }
+})
+
+
+router.get('/checkChassisNumber', authentication, async (req: Request, res: Response) => {
+    const chassisNumber = req.query.cn;
+    const queryString: any = {};
+    queryString.selector = {
+        docType: 'car',
+        chassisNumber: chassisNumber
+    }
+    try {
+        const results = await queryCars(req.user.phoneNumber, JSON.stringify(queryString));
+        if (results.length === 0) {
+            return res.send({ valid: true});
+        }
+        else return res.send({ valid: false });
+    } catch (error) {
+        console.log(error);
+        return res.send( { valid: false });
     }
 })
 
@@ -115,7 +159,6 @@ router.post('/:carId/changeOwnership', authentication, async (req: Request, res:
     }
     else return res.sendStatus(403);
 });
-
 
 
 

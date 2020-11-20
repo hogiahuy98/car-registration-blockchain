@@ -1,5 +1,5 @@
 import { Contract ,Context } from 'fabric-contract-api';
-import { Car, ChangeOwnerRequest } from './car';
+import { Car, ChangeOwnerRequest } from './Car';
 import {uid} from 'uid';
 
 
@@ -31,17 +31,18 @@ export class CarContract extends Contract {
         const car: Car = {
             id: params[0],
             registrationNumber: PENDING_REGISTRATION_NUMBER,
-            vin: params[1],
-            brand: params[2],
-            model: params[3],
-            color: params[4],
+            engineNumber: params[1],
+            chassisNumber: params[2],
+            brand: params[3],
+            model: params[4],
+            color: params[5],
+            year: params[6],
             owner: this.getUserId(ctx), //Owner identity card number
             registrationState: REGISTRATION_STATE.PENDING,
             createTime: new Date().toString(),
             modifyTime: new Date().toString(),
             docType: DOCTYPE,
         };
-        console.log(params);
         await ctx.stub.putState(car.id, Buffer.from(JSON.stringify(car)));
         return ctx.stub.getTxID();
     }
@@ -49,7 +50,7 @@ export class CarContract extends Contract {
 
     public async acceptRegistration(ctx: Context,  carId: string, registrationNumber: string): Promise<string> {
         const carAsBytes = await ctx.stub.getState(carId);
-        let car: any;
+        let car: Car;
         try {
             car = JSON.parse(carAsBytes.toString());
         } catch (error) {
@@ -58,6 +59,7 @@ export class CarContract extends Contract {
         car.processedPolice = this.getUserId(ctx);
         car.registrationNumber = registrationNumber;
         car.registrationState = REGISTRATION_STATE.REGISTERED;
+        car.registrationTime = new Date().toString();
         car.modifyTime = new Date().toString();
         await ctx.stub.putState(carId, Buffer.from(JSON.stringify(car)));
         return ctx.stub.getTxID();

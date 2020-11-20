@@ -4,10 +4,13 @@ export class Car {
     public brand: string;
     public model: string;
     public color: string;
-    public vin: string;
+    public engineNumber: string;
+    public chassisNumber: string;
     public owner: string;
+    public year: string;
     public createTime?: string;
     public modifyTime?: string;
+    public registrationTime?: string;
     public registrationState: string;
     public processedPolice?: string;
     public docType: string;

@@ -11,7 +11,7 @@ import { Result, Button } from 'antd';
 import Authorized from '@/utils/Authorized';
 import RightContent from '@/components/GlobalHeader/RightContent';
 import { getMatchMenu } from '@umijs/route-utils';
-import logo from '../assets/logo.svg';
+import logo from '../assets/logo.png';
 
 import AuthContext from '@/context/AuthContext';
 
@@ -84,6 +84,7 @@ const BasicLayout = (props) => {
       formatMessage={formatMessage}
       {...props}
       {...settings}
+      siderWidth={250}
       onMenuHeaderClick={() => history.push('/')}
       menuItemRender={(menuItemProps, defaultDom) => {
         if (menuItemProps.isUrl || !menuItemProps.path) {
@@ -112,7 +113,7 @@ const BasicLayout = (props) => {
       footerRender={() => defaultFooterDom}
       menuDataRender={menuDataRender}
       rightContentRender={() => <RightContent />}
-      loading={true}
+      title={"CSGT.VN"}
     >
         {children}
     </ProLayout>

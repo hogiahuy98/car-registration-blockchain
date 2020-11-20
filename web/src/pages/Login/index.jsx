@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import AuthContext from '@/context/AuthContext';
+import AuthContext from '@/pages/CarRegister/node_modules/@/context/AuthContext';
 import { Button, Space, Card, Form, Input, Checkbox, Row, Col } from 'antd';
 import { Redirect, history } from 'umi';
 import Axios from 'axios';

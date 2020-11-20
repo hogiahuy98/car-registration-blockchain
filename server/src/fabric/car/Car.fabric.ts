@@ -1,12 +1,21 @@
-import { getCarContract } from './commonFuntion';
-import { Car } from './carInterface';
-export { Car } from './carInterface'
+import { getCarContract } from './CommonFuntion';
+import { Car } from './CarInterface';
+export { Car } from './CarInterface'
 
 
 export async function registryCar(car: Car, phoneNumber: string) {
     try {
         const contract = await getCarContract(phoneNumber);
-        const TxID = await contract.submitTransaction('registryCar', car.id, car.vin, car.brand, car.model, car.model);
+        const params: Array<string> = [
+            car.id,
+            car.engineNumber,
+            car.chassisNumber,
+            car.brand,
+            car.model,
+            car.color,
+            car.year,
+        ]
+        const TxID = await contract.submitTransaction('registryCar', ...params);
         return { success: true, result: { TxID: TxID.toString() } };
     } catch (error) {
         return { success: false, result: { error: error } };
@@ -113,6 +122,16 @@ export async function requestChangeOwner(carId: string, phoneNumber: string, new
         }
     } catch (error) {
         return { success: false, result: { msg: error } }
+    }
+}
+
+export async function queryCars(phoneNumber: string, queryString: string): Promise<any> {
+    try {
+        const contract = await getCarContract(phoneNumber);
+        const resultsBuffer = await contract.evaluateTransaction('queryResult', queryString);
+        return JSON.parse(resultsBuffer.toString());
+    } catch (error) {
+        throw error;
     }
 }
 

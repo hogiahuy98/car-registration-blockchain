@@ -28,6 +28,9 @@ const LoginForm = () => {
                 data: values,
             });
         } catch (error) {
+            if (error.message === "Network Error") {
+
+            }
             result = error.response;
         }
         if (result.data.success) {
@@ -40,7 +43,7 @@ const LoginForm = () => {
             });
             setTimeout(() => {
                 setButtonLoading(false);
-                history.push('/welcome');
+                history.push('/app/car-register');
             }, 1500);
         }
     }

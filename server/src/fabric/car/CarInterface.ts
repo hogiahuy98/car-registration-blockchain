@@ -4,7 +4,10 @@ export interface Car {
     brand: string;
     model: string;
     color: string;
-    vin: string;
+    chassisNumber: string;
+    engineNumber: string;
+    capality: string;
+    year: string;
     owner?: string;
     createTime?: string;
     modifyTime?: string;

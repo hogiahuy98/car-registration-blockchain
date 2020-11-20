@@ -3,7 +3,7 @@
  */
 
 import { Contract, Context } from "fabric-contract-api";
-import { User } from "./user";
+import { User } from "./User";
 
 
 
@@ -138,7 +138,6 @@ export class UserContract extends Contract {
         };
 
         await ctx.stub.putState(user.id, Buffer.from(JSON.stringify(user)));
-
     }
 
 

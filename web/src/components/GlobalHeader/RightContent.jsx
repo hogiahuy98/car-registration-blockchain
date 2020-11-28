@@ -8,12 +8,10 @@ const ENVTagColor = {
   test: 'green',
   pre: '#87d068',
 };
-
-import AuthContext from '@/context/AuthContext';
+import { logout } from '@/helpers/Auth';
 
 const GlobalHeaderRight = (props) => {
   const { theme, layout } = props;
-  const { logout } = useContext(AuthContext);
   let className = styles.right;
 
   if (theme === 'dark' && layout === 'top') {

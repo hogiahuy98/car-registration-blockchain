@@ -6,7 +6,7 @@ import { Wallets, X509Identity, Wallet, Gateway } from 'fabric-network';
 import * as FabricCAServices from 'fabric-ca-client';
 import * as path from 'path';
 import * as fs from 'fs';
-import { User } from './userInterface';
+import { User } from './UserInterface';
 
 export async function registerUser(user: User): Promise<boolean>{
     try {
@@ -23,9 +23,9 @@ export async function registerUser(user: User): Promise<boolean>{
         const wallet = await Wallets.newFileSystemWallet(walletPath);
 
         // Check to see if we've already enrolled the user.
-        const userIdentity = await wallet.get(user.phoneNumber);
+        const userIdentity = await wallet.get(user.id);
         if (userIdentity) {
-            const messeage = `Số điện thoại ${user.phoneNumber} đã đăng ký`;
+            const messeage = `Số điện thoại ${user.id} đã đăng ký`;
             throw new Error(messeage)
         }
 
@@ -41,8 +41,8 @@ export async function registerUser(user: User): Promise<boolean>{
        const adminUser = await provider.getUserContext(adminIdentity, 'admin');
 
         // Register the user, enroll the user, and import the new identity into the wallet.
-        const secret = await ca.register({ affiliation: 'org1.department1', enrollmentID: user.phoneNumber, role: 'client'}, adminUser);
-        const enrollment = await ca.enroll({ enrollmentID: user.phoneNumber, enrollmentSecret: secret });
+        const secret = await ca.register({ affiliation: 'org1.department1', enrollmentID: user.id, role: 'client'}, adminUser);
+        const enrollment = await ca.enroll({ enrollmentID: user.id, enrollmentSecret: secret });
         const x509Identity: X509Identity = {
             credentials: {
                 certificate: enrollment.certificate,
@@ -51,18 +51,18 @@ export async function registerUser(user: User): Promise<boolean>{
             mspId: 'Org1MSP',
             type: 'X.509',
         };
-        console.log(enrollment.certificate.split('\r\n'));
-        await wallet.put(user.phoneNumber, x509Identity);
+        await wallet.put(user.id, x509Identity);
         const isRegisted = await createUser(user, wallet, ccp);
         return isRegisted;
     } catch (error) {
-        throw error;
+        console.log(error);
+        return false;
     }
 }
 
 async function createUser(user: User, wallet: Wallet, ccp: any): Promise<boolean>{
     try {
-        const identity = await wallet.get(user.phoneNumber);
+        const identity = await wallet.get(user.id);
         if (!identity) {
             throw new Error("Cannot find Identity in wallet!");
         }
@@ -70,7 +70,7 @@ async function createUser(user: User, wallet: Wallet, ccp: any): Promise<boolean
         const gateway = new Gateway();
         await gateway.connect(ccp, {
             wallet: wallet,
-            identity: user.phoneNumber,
+            identity: user.id,
             discovery: {
                 enabled: true,
                 asLocalhost: true
@@ -81,7 +81,7 @@ async function createUser(user: User, wallet: Wallet, ccp: any): Promise<boolean
         const contract = await network.getContract("CRChaincode", "User");
 
         const transaction = await contract.submitTransaction("createUser", user.id, user.password, user.fullName, user.phoneNumber, user.dateOfBirth, user.ward, user.identityCardNumber, user.role);
-        console.log(`User ${user.phoneNumber} (${user.fullName}) has been registed`);
+        console.log(`User ${user.id} (${user.fullName}) has been registed`);
         return true
     } catch (error) {
         console.log(error);

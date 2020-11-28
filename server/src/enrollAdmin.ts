@@ -21,12 +21,12 @@ async function main() {
         // Create a new file system based wallet for managing identities.
         const walletPath = path.join(process.cwd(), 'wallet');
         const wallet = await Wallets.newFileSystemWallet(walletPath);
-        console.log(`Wallet path: ${walletPath}`);
+        // console.log(`Wallet path: ${walletPath}`);
 
         // Check to see if we've already enrolled the admin user.
         const identity = await wallet.get('admin');
         if (identity) {
-            console.log('An identity for the admin user "admin" already exists in the wallet');
+            // console.log('An identity for the admin user "admin" already exists in the wallet');
             throw new Error('An identity for the admin user "admin" already exists in the wallet')
         }
 
@@ -44,7 +44,7 @@ async function main() {
         console.log('Successfully enrolled admin user "admin" and imported it into the wallet');
 
     } catch (error) {
-        console.error(`Failed to enroll admin user "admin": ${error}`);
+        // console.error(`Failed to enroll admin user "admin": ${error}`);
         process.exit(1);
     }
 }

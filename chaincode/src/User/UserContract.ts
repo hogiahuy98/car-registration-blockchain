@@ -123,20 +123,35 @@ export class UserContract extends Contract {
 
     public async initLedger(ctx: Context) {
 
-        const user: User= {
+        const police: User = {
             id: "CSGT",
-            fullName: "csgt",
+            fullName: "Phạm Văn Cảnh",
             ward: "Ninh Kieu",
             dateOfBirth: "TEST",
-            identityCardNumber: "TEST",
+            identityCardNumber: "385743821",
             role: "police",
-            password: "admin",
+            password: "password",
             createTime: new Date().toString(),
             updateTime: new Date().toString(),
-            phoneNumber: "test",
+            phoneNumber: "cs-0917387922",
             docType: 'user'
         };
 
+        const user: User = {
+            id: "iijfsuwbzosdbdsj",
+            fullName: "Hồ Gia Huy",
+            ward: "Ninh Kieu",
+            dateOfBirth: new Date('10/01/1998').toString(),
+            identityCardNumber: "385752739",
+            role: "citizen",
+            password: "password",
+            createTime: new Date().toString(),
+            updateTime: new Date().toString(),
+            phoneNumber: "cs-0942070334",
+            docType: 'user'
+        };
+
+        await ctx.stub.putState(police.id, Buffer.from(JSON.stringify(police)));
         await ctx.stub.putState(user.id, Buffer.from(JSON.stringify(user)));
     }
 

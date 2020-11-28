@@ -1,6 +1,7 @@
 import { Contract ,Context } from 'fabric-contract-api';
-import { Car, ChangeOwnerRequest } from './Car';
+import { Car, TransferDeal } from './Car';
 import {uid} from 'uid';
+import { User } from '../User/User';
 
 
 const DOCTYPE = 'car';
@@ -9,11 +10,13 @@ const REGISTRATION_STATE = {
     PENDING: 'pending',
     REGISTERED: 'registered',
     REJECTED: 'rejected',
+    TRANSFERRING_OWNERSHIP: 'transferring_ownership'
 }
 const CHANGE_OWNER_STATE = {
-    PENDING: 'pending',
-    ACCEPTED: 'accepted',
-    REJECTED: 'rejected',
+    PENDING: 0,
+    APPROVED: 1,
+    CONFIRMED: 2,
+    REJECTED: 3,
 }
 const CONTRACT_NAME = 'car';
 const BOOLEAN_STRING = {
@@ -37,10 +40,13 @@ export class CarContract extends Contract {
             model: params[4],
             color: params[5],
             year: params[6],
-            owner: this.getUserId(ctx), //Owner identity card number
+            capality: params[7],
+            owner: params[8], //userID
             registrationState: REGISTRATION_STATE.PENDING,
             createTime: new Date().toString(),
             modifyTime: new Date().toString(),
+            modifyType: 0,
+            modifyUser: this.getUserId(ctx),
             docType: DOCTYPE,
         };
         await ctx.stub.putState(car.id, Buffer.from(JSON.stringify(car)));
@@ -61,13 +67,15 @@ export class CarContract extends Contract {
         car.registrationState = REGISTRATION_STATE.REGISTERED;
         car.registrationTime = new Date().toString();
         car.modifyTime = new Date().toString();
+        car.modifyType = 1;
+        car.modifyUser = this.getUserId(ctx);
         await ctx.stub.putState(carId, Buffer.from(JSON.stringify(car)));
         return ctx.stub.getTxID();
     }
 
     public async rejectRegistration(ctx: Context,  carId: string): Promise<string> {
         const carAsBytes = await ctx.stub.getState(carId);
-        let car: any;
+        let car: Car;
         try {
             car = JSON.parse(carAsBytes.toString());
         } catch (error) {
@@ -76,6 +84,8 @@ export class CarContract extends Contract {
         car.processedPolice = this.getUserId(ctx);
         car.registrationState = REGISTRATION_STATE.REJECTED;
         car.modifyTime = new Date().toString();
+        car.modifyUser = this.getUserId(ctx);
+        car.modifyType = 2;
         await ctx.stub.putState(carId, Buffer.from(JSON.stringify(car)));
         return ctx.stub.getTxID();
     }
@@ -152,7 +162,7 @@ export class CarContract extends Contract {
 		while (!res.done) {
 			if (res.value && res.value.value.toString()) {
 				let jsonRes: any = {};
-				console.log(res.value.value.toString('utf8'));
+				console.log(res);
 				if (isHistory && isHistory === true) {
 					jsonRes.TxId = res.value.tx_id;
 					jsonRes.Timestamp = res.value.timestamp;
@@ -182,26 +192,34 @@ export class CarContract extends Contract {
 
     private getUserId(ctx: Context): string {
         const rs = ctx.clientIdentity.getID();
-        const find = rs.match(/\d{7,}/);
-        console.log(find[0]);
+        const find = rs.match(/[A-Za-z0-9_-]{21}/);
         return find![0];
     }
 
 
-    public async createRequestToChangeOwner(ctx: Context, carId: string, currentOwner: string, newOwner: string): Promise<string> {
-        const request: ChangeOwnerRequest = {
-            id: uid(16),
+    public async createTransferDeal(ctx: Context,requestId: string, carId: string, currentOwner: string, newOwner: string): Promise<string> {
+        const carAsBytes = await ctx.stub.getState(carId);
+        const car: Car = JSON.parse(carAsBytes.toString())
+        car.modifyType = 4;
+        car.modifyTime = new Date().toString();
+        car.modifyUser = currentOwner;
+        car.registrationState = REGISTRATION_STATE.TRANSFERRING_OWNERSHIP;
+        await ctx.stub.putState(car.id, Buffer.from(JSON.stringify(car)));
+        const request: TransferDeal = {
+            id: requestId,
             currentOwner: currentOwner,
             newOwner: newOwner,
             carId: carId,
             state: CHANGE_OWNER_STATE.PENDING,
             createTime: new Date().toString(),
             modifyTime: new Date().toString(),
+            docType: 'transfer'
         }
         await ctx.stub.putState(request.id, Buffer.from(JSON.stringify(request)));
         return ctx.stub.getTxID();
     }
 
+    
     public async queryChangeOwnerRequest(ctx: Context, newOwner: string){
         const queryString: any = {};
         queryString.selector = {
@@ -214,26 +232,54 @@ export class CarContract extends Contract {
     }
 
 
-    public async acceptChangeOwnerRequest(ctx: Context, carId: string): Promise<string> {
-        const changeRequestAsByte = await ctx.stub.getState(carId);
-        const changeRequest: ChangeOwnerRequest = JSON.parse(changeRequestAsByte.toString());
-        changeRequest.state = CHANGE_OWNER_STATE.ACCEPTED;
-        changeRequest.modifyTime = new Date().toString();
-        await ctx.stub.putState(changeRequest.id, Buffer.from(JSON.stringify(changeRequest)));
-        const carAsBytes = await ctx.stub.getState(changeRequest.carId);
-        const car: Car = JSON.parse(carAsBytes.toString());
-        car.owner = changeRequest.newOwner;
-        car.modifyTime = new Date().toString();
-        await ctx.stub.putState(car.id, Buffer.from(JSON.stringify(car)));
+    public async approveTransfer(ctx: Context, transferDealId: string): Promise<string> {
+        const dealAsByte = await ctx.stub.getState(transferDealId);
+        const deal: TransferDeal = JSON.parse(dealAsByte.toString());
+
+        if(deal.newOwner !== this.getUserId(ctx)) return "PERMISSION DENIED";
+
+        deal.state = CHANGE_OWNER_STATE.APPROVED;
+        deal.modifyTime = new Date().toString();
+
+        await ctx.stub.putState(deal.id, Buffer.from(JSON.stringify(deal)));
+
         return ctx.stub.getTxID();
     }
 
 
-    public async isOwnerOfCar(ctx: Context, carId: string, phoneNumber: string): Promise<string>{
+    public async confirmTransfer(ctx: Context, transferRequestId: string): Promise<string> {
+        const userAsByte = await ctx.stub.getState(this.getUserId(ctx));
+        const user: User = JSON.parse(userAsByte.toString());
+        if(user.role !== 'police') return "PERMISSION DENIED";
+
+        const dealAsByte = await ctx.stub.getState(transferRequestId);
+        const deal: TransferDeal = JSON.parse(dealAsByte.toString());
+
+        deal.state = CHANGE_OWNER_STATE.CONFIRMED;
+        deal.modifyTime = new Date().toString();
+
+        await ctx.stub.putState(deal.id, Buffer.from(JSON.stringify(deal)));
+        
+        const carAsBytes = await ctx.stub.getState(deal.carId);
+
+        const car: Car = JSON.parse(carAsBytes.toString());
+
+        car.owner = deal.newOwner;
+        car.modifyTime = new Date().toString();
+        car.modifyType = 5;
+        car.modifyUser = this.getUserId(ctx);
+
+        await ctx.stub.putState(car.id, Buffer.from(JSON.stringify(car)));
+        
+        return ctx.stub.getTxID();
+    }
+
+
+    public async isOwnerOfCar(ctx: Context, carId: string, userId: string): Promise<string>{
         const queryString: any = {};
         queryString.selector = {
             id: carId,
-            onwer: phoneNumber,
+            onwer: userId,
             docType: DOCTYPE,
         }
         const queryResult = await this.queryResult(ctx, JSON.stringify(queryString));
@@ -241,6 +287,12 @@ export class CarContract extends Contract {
             return BOOLEAN_STRING.false
         }
         return BOOLEAN_STRING.true;
+    }
+
+    public async getHistory(ctx: Context, id: string) {
+        const history = await ctx.stub.getHistoryForKey(id);
+        const result = await this.getAllResults(history, true);
+        return result;
     }
 
 }

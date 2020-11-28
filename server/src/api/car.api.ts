@@ -1,4 +1,5 @@
 import { Router, Request, Response, request } from 'express';
+import moment from 'moment';
 import {registryCar,
         getAllCars,
         Car,
@@ -8,34 +9,53 @@ import {registryCar,
         getCarById,
         isOwnerOfCar, 
         requestChangeOwner,
-        queryCars} from '../fabric/car/Car.fabric';
-import uid from 'uid';
-import { authentication } from '../middleware/auth.middleware'
+        queryCars,
+        getHistoryOfCar,
+        approveTransferDeal
+} from '../fabric/car/Car.fabric';
+import { nanoid } from 'nanoid';
+import { authentication } from '../middleware/auth.middleware';
+import { getUserById } from '../fabric/user/User.fabric';
 
 const router = Router();
 
 // /car/ POST
 router.post('/', authentication, async (req: Request, res: Response) => {
     try {
-        const userPhoneNumber = req.user.phoneNumber;
+        const userId = req.user.id;
         const car: Car = {
-            id: uid(16),
+            id: nanoid(),
             brand: req.body.brand,
             color: req.body.color,
             model: req.body.model,
             year: req.body.year,
-            owner: req.user.phoneNumber,
+            owner: req.user.id,
             chassisNumber: req.body.chassisNumber,
             engineNumber: req.body.engineNumber,
             capality: req.body.capality,
         }
-        const registryResult = await registryCar(car, userPhoneNumber);
+        const registryResult = await registryCar(car, userId);
         return res.json({ ...registryResult });
     } catch (error) {
         res.sendStatus(400);
     }
 })
 
+router.get('/', authentication, async (req: Request, res: Response) => {
+    const id = req.user.id;
+    const cars = await getAllCars(id);
+    if(!cars.result.cars || cars.result.cars.length === 0) return res.sendStatus(404)
+    const result = await Promise.all(cars.result.cars.map(async (state: { Record: any; }) => {
+        const car = state.Record;
+        const user = await getUserById(car.owner);
+        delete user.password
+        car.owner = user;
+        
+        return car;
+    }))
+    console.log(result)
+    res.json(result);
+});
 
 router.get('/checkEngineNumber', authentication, async (req: Request, res: Response) => {
     const engineNumber = req.query.en;
@@ -45,7 +65,7 @@ router.get('/checkEngineNumber', authentication, async (req: Request, res: Respo
         engineNumber
     }
     try {
-        const results = await queryCars(req.user.phoneNumber, JSON.stringify(queryString));
+        const results = await queryCars(req.user.id, JSON.stringify(queryString));
         if (results.length === 0) {
             return res.send({ valid: true});
         }
@@ -65,7 +85,7 @@ router.get('/checkChassisNumber', authentication, async (req: Request, res: Resp
         chassisNumber: chassisNumber
     }
     try {
-        const results = await queryCars(req.user.phoneNumber, JSON.stringify(queryString));
+        const results = await queryCars(req.user.id, JSON.stringify(queryString));
         if (results.length === 0) {
             return res.send({ valid: true});
         }
@@ -74,31 +94,9 @@ router.get('/checkChassisNumber', authentication, async (req: Request, res: Resp
         console.log(error);
         return res.send( { valid: false });
     }
-})
-
-/*  /car/ GET */
-router.get('/', authentication, async (req: Request, res: Response) => {
-    const identityCardNumber = req.user.identityCardNumber;
-    const cars = await getAllCars(identityCardNumber);
-    if(!cars.result.cars || cars.result.cars.length === 0) {
-        return res.sendStatus(404)
-    }
-    res.json(cars.result);
 });
 
-
-router.get('/:id', authentication, async (req: Request, res: Response) => {
-    const identityCardNumber = req.user.identityCardNumber;
-    const car = await getCarById(identityCardNumber, req.params.id);
-    if(!car.result.car){
-        return res.sendStatus(404)
-    }
-    res.json(car.result);
-});
-
-
-
-router.get('/pending/', authentication, async (req: Request, res: Response) => {
+router.get('/pending', authentication, async (req: Request, res: Response) => {
     if (req.user.role !== "police") {
         return res.sendStatus(401);
     }
@@ -110,13 +108,39 @@ router.get('/pending/', authentication, async (req: Request, res: Response) => {
     return res.json(queryResult.result);
 });
 
+router.post('/transfer/:dealId/approveTransfer/', authentication, async (req: Request, res: Response) => {
+    try {
+        const TxID = await approveTransferDeal(req.user.id, req.params.dealId);
+        if(typeof TxID === 'undefined') return res.send({ success: false })
+        else return res.send({ success: true, TxID})
+    } catch (error) {
+        console.log(error);
+        return res.send({ success: false });
+    }
+})
+
+router.get('/:id', authentication, async (req: Request, res: Response) => {
+    const queryString: any = {};
+    queryString.selector = {
+        docType: 'car',
+        id: req.params.id
+    }
+    const result = await queryCars(req.user.id, JSON.stringify(queryString));
+    res.json(result[0]);
+});
+
+router.get('/:id/history', authentication, async (req: Request, res: Response) => {
+    const id = req.user.id;
+    const carHistory = await getHistoryOfCar(id, req.params.id)
+    res.send(carHistory);
+})
 
 router.put('/:id/acceptRegistration/', authentication, async (req: Request, res: Response) => {
     if (req.user.role !== 'police') {
         return res.sendStatus(401);
     }
-    const identityCardNumber = req.user.identityCardNumber;
-    const acceptRegistrationResult = await acceptCarRegistration(req.params.id, req.body.registrationNumber, identityCardNumber);
+    const id = req.user.id;
+    const acceptRegistrationResult = await acceptCarRegistration(req.params.id, req.body.registrationNumber, id);
     if (!acceptRegistrationResult.success) {
         console.log(acceptRegistrationResult);
         return res.sendStatus(403);
@@ -143,22 +167,20 @@ router.put('/:carId/rejectRegistration/', authentication, async (req: Request, r
 });
 
 
-router.post('/:carId/changeOwnership', authentication, async (req: Request, res: Response) =>{
+
+router.post('/:carId/transferOwnership', authentication, async (req: Request, res: Response) =>{
     const carId = req.params.carId;
     const userId = req.user.id;
-    const identityCardNumber = req.user.identityCardNumber;
-    const newOwner = req.body.newOwner
-    const isOwnerCar = await isOwnerOfCar(req.params.carId, req.user.id, req.user.identityCardNumber);
-    console.log(isOwnerCar);
-    if (!isOwnerCar.result.isOwner){
-        return res.sendStatus(401);
-    }
-    const requestResult = await requestChangeOwner(carId, identityCardNumber, newOwner, userId);
-    if(requestResult.success) {
-        return res.send(requestResult.result)
-    }
+    const newOwner = req.body.newOwner;
+    const isOwnerCar = await isOwnerOfCar(req.params.carId, req.user.id);
+    if (!isOwnerCar.result.isOwner) return res.sendStatus(401);
+    
+    const requestResult = await requestChangeOwner(carId, newOwner, userId);
+
+    if(requestResult.success) return res.send(requestResult.result)
     else return res.sendStatus(403);
 });
+
 
 
 

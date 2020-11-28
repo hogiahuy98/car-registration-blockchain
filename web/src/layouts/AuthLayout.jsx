@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import AuthContext from '../context/AuthContext';
+import { useHistory, Redirect } from 'umi';
+import { logout, login } from '@/helpers/Auth';
+import axios from 'axios';
 
 const defaultAuth = {
     isAuth: false,
@@ -9,40 +11,33 @@ const defaultAuth = {
 }
 
 const AuthLayout = (props) => {
-    const localAuth = JSON.parse(localStorage.getItem('auth'))
-    const [auth, setAuth] = useState(localAuth ? localAuth : defaultAuth);
-    const login = async ({token, role, userInfo}) => {
-        await setAuth(prevState => {
-            return {
-                ...prevState,
-                isAuth: true,
-                token: token,
-                role: role,
-                userInfo: userInfo,
+    const history = useHistory();
+    const user = JSON.parse(localStorage.getItem('auth'));
+
+    useEffect(() => {
+        const f = async () => {
+            try {
+                const result = await axios.get('http://localhost:3000/users/me', {
+                    headers: {
+                        Authorization: 'Bearer ' + user.token
+                    }
+                })
+                login(user.token, result.data);
+            } catch (error) {
+                logout();
+                if (history.location.pathname !== '/index') history.push('/index');
             }
-        });
-    }
+        }
+        f();
+    })
 
-    useEffect(() => localStorage.setItem('auth', JSON.stringify(auth)),[auth]);
+    const appName = history.location.pathname.split('/')[1];
 
-    const logout = () => {
-        setAuth(prevState => {
-            return {
-                ...prevState,
-                isAuth: false,
-                token: "",
-                role: "",
-                userInfo: {}
-            }
-        });
-        localStorage.removeItem('auth');
-    }
+    if (!user && history.location.pathname !== '/index') return <Redirect to='/index'></Redirect>;
+    
+    
 
-    return (
-        <AuthContext.Provider value={{auth, login, logout}}>
-            {props.children}
-        </AuthContext.Provider>
-    )
+    return <>{props.children}</>;
 }
 
 

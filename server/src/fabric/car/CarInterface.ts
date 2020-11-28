@@ -8,7 +8,7 @@ export interface Car {
     engineNumber: string;
     capality: string;
     year: string;
-    owner?: string;
+    owner: string;
     createTime?: string;
     modifyTime?: string;
     registrationState?: string;

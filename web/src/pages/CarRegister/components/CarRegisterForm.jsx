@@ -1,18 +1,18 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Card, Form, Input, DatePicker, InputNumber, Button, Result, Modal } from 'antd';
-import { PageContainer } from '@ant-design/pro-layout';
 import { DEFAULT_HOST } from '@/host';
 import axios from 'axios';
+import { REGISTRATION_FIELD } from './Constants'
 
+import { fetchCurrentUser, logout } from '@/helpers/Auth';
 
-import AuthContext from '@/context/AuthContext';
 
 export default (props) => {
     const [successModalVisible, setSucessModalVisible] = useState(false);
     const [txid, setTxid] = useState();
     const [posting, setPosting] = useState(false);
-    const { auth } = useContext(AuthContext);
-
+    const { reload } = props;
+    const auth = fetchCurrentUser()
     const config = {
         headers: {
             Authorization: `Bearer ${auth.token}`,
@@ -25,9 +25,8 @@ export default (props) => {
         try {
             const result = await axios.post(url, values, config);
             setPosting(false);
-            console.log(result);
             if (result.data.success && result.data.result.TxID) {
-                setTxid(result.data.result.TxID);
+                await setTimeout(()=> setTxid(result.data.result.TxID, 3000));
                 setSucessModalVisible(true);
             }
         } catch (error) {
@@ -66,36 +65,36 @@ export default (props) => {
                 onFinishFailed={() => setPosting(false)}
             >
                 <Form.Item
-                    label="Hãng sản xuất"
-                    name="brand"
+                    label={REGISTRATION_FIELD.BRAND.LABEL}
+                    name={REGISTRATION_FIELD.BRAND.NAME}
                     rules={[{ required: true, message: 'Hãng sản xuất không được bỏ trống' }]}
                 >
                     <Input disabled={posting} placeholder="VD: Vinfast..." />
                 </Form.Item>
                 <Form.Item
-                    label="Mẫu"
-                    name="model"
+                    label={REGISTRATION_FIELD.MODEL.LABEL}
+                    name={REGISTRATION_FIELD.MODEL.NAME}
                     rules={[{ required: true, message: 'Mẫu không được bỏ trống' }]}
                 >
                     <Input disabled={posting} placeholder="VD: Lux SA2.0" />
                 </Form.Item>
                 <Form.Item
-                    label="Màu sơn"
-                    name="color"
+                    label={REGISTRATION_FIELD.COLOR.LABEL}
+                    name={REGISTRATION_FIELD.COLOR.NAME}
                     rules={[{ required: true, message: 'Màu sơn không được bỏ trống' }]}
                 >
                     <Input disabled={posting} placeholder="VD: Hồng, Tím..." />
                 </Form.Item>
                 <Form.Item
-                    label="Năm sản xuất"
-                    name="year"
+                    label={REGISTRATION_FIELD.YEAR.LABEL}
+                    name={REGISTRATION_FIELD.YEAR.NAME}
                     rules={[{ required: true, message: 'Chọn năm sản xuất' }]}
                 >
                     <DatePicker disabled={posting} picker="year" placeholder="Chọn năm" />
                 </Form.Item>
                 <Form.Item
-                    label="Dung tích xe (cc)"
-                    name="capality"
+                    label={REGISTRATION_FIELD.CAPALITY.LABEL}
+                    name={REGISTRATION_FIELD.CAPALITY.NAME}
                     rules={[
                         { required: true, message: 'Nhập dung tích xe' },
                         { type: 'number', message: 'Dung tích không hợp lệ' },
@@ -104,8 +103,8 @@ export default (props) => {
                     <InputNumber disabled={posting} />
                 </Form.Item>
                 <Form.Item
-                    label="Số khung"
-                    name="chassisNumber"
+                    label={REGISTRATION_FIELD.CHASSIS_NUMBER.LABEL}
+                    name={REGISTRATION_FIELD.CHASSIS_NUMBER.NAME}
                     hasFeedback
                     rules={[
                         { validator: checkChassisNumber },
@@ -115,8 +114,8 @@ export default (props) => {
                     <Input disabled={posting} placeholder="Số khung" />
                 </Form.Item>
                 <Form.Item
-                    label="Số máy"
-                    name="engineNumber"
+                    label={REGISTRATION_FIELD.ENGINE_NUMBER.LABEL}
+                    name={REGISTRATION_FIELD.ENGINE_NUMBER.NAME}
                     hasFeedback
                     rules={[
                         { validator: checkEngineNumber },
@@ -138,7 +137,10 @@ export default (props) => {
             </Form>
             <Modal
                 visible={successModalVisible}
-                onCancel={() => setSucessModalVisible(false)}
+                onCancel={() => {
+                    setSucessModalVisible(false);
+                    reload(true);
+                }}
                 footer={null}
             >
                 <Result

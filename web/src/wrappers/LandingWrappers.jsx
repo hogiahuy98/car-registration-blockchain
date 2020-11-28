@@ -6,8 +6,5 @@ export default (props) => {
     if (auth === null) {
         return <div>{props.children}</div>
     }
-    else if (!auth.isAuth) {
-        return <div>{props.children}</div>
-    }
     else return <Redirect to='/app/car-register'></Redirect>
 }

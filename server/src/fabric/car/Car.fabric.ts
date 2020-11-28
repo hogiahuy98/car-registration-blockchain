@@ -1,11 +1,13 @@
 import { getCarContract } from './CommonFuntion';
 import { Car } from './CarInterface';
+import { nanoid } from 'nanoid';
 export { Car } from './CarInterface'
 
 
 export async function registryCar(car: Car, phoneNumber: string) {
     try {
         const contract = await getCarContract(phoneNumber);
+        console.log(car);   
         const params: Array<string> = [
             car.id,
             car.engineNumber,
@@ -14,6 +16,8 @@ export async function registryCar(car: Car, phoneNumber: string) {
             car.model,
             car.color,
             car.year,
+            car.capality,
+            car.owner,
         ]
         const TxID = await contract.submitTransaction('registryCar', ...params);
         return { success: true, result: { TxID: TxID.toString() } };
@@ -94,25 +98,31 @@ export async function rejectCarRegistration(carId: string, registrationNumber: s
     }
 }
 
-export async function isOwnerOfCar(carId: string, userId: string, phoneNumber: string): Promise<any> {
+export async function isOwnerOfCar(carId: string, userId: string): Promise<any> {
     try {
-        const contract = await getCarContract(phoneNumber);
-        const resultByte = await contract.evaluateTransaction('isOwnerOfCar', carId, userId);
-        const result = resultByte.toString();
-        console.log(result);
-        if(result === 'true'){
-            return { success: true, result: { isOnwer: true } }
+        const contract = await getCarContract(userId);
+        const queryString: any = {};
+        queryString.selector = {
+            docType: 'car',
+            id: carId,
+            owner: userId
         }
-        return { success: true, result: { isOnwer: false } }
+        const resultByte = await contract.evaluateTransaction('queryResult', JSON.stringify(queryString));
+        const result = JSON.parse(resultByte.toString());
+        if(result.length > 0){
+            return { success: true, result: { isOwner: true } }
+        }
+        return { success: true, result: { isOwner: false } }
     } catch (error) {
-        return { success: false, result: { msg: error } }
+        return { success: false, result: { msg: error }}
     }
 }
 
-export async function requestChangeOwner(carId: string, phoneNumber: string, newOwner: string, currentOwner: string) {
+export async function requestChangeOwner(carId: string,  newOwner: string, currentOwner: string) {
     try {
-        const contract = await getCarContract(phoneNumber);
-        const TxIDByte = await contract.submitTransaction('createRequestToChangeOwner', carId, currentOwner, newOwner);
+        const contract = await getCarContract(currentOwner);
+        const dealId = nanoid();
+        const TxIDByte = await contract.submitTransaction('createTransferDeal', dealId, carId, currentOwner, newOwner);
         const TxID = TxIDByte.toString();
         if( TxID !== "" || TxID.length !== 0) {
             return { success: true, result: { TxID: TxID } }
@@ -121,14 +131,37 @@ export async function requestChangeOwner(carId: string, phoneNumber: string, new
             throw new Error("Có lỗi khi gọi transaction");
         }
     } catch (error) {
+        console.log(error);
         return { success: false, result: { msg: error } }
     }
 }
 
-export async function queryCars(phoneNumber: string, queryString: string): Promise<any> {
+export async function approveTransferDeal(userId: string, dealId: string){
+    try {
+        const contract = await getCarContract(userId);
+        const TxID = await contract.evaluateTransaction('approveTransfer', dealId);
+        if(TxID.toString() === "PERMISSION DENIED") throw new Error(TxID.toString());
+        return TxID.toString();
+    } catch (error) {
+        console.log(error);
+        return undefined;
+    }
+}
+
+export async function queryCars(userId: string, queryString: string): Promise<any> {
+    try {
+        const contract = await getCarContract(userId);
+        const resultsBuffer = await contract.evaluateTransaction('queryResult', queryString);
+        return JSON.parse(resultsBuffer.toString());
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function getHistoryOfCar(phoneNumber: string, carId: string): Promise<any> {
     try {
         const contract = await getCarContract(phoneNumber);
-        const resultsBuffer = await contract.evaluateTransaction('queryResult', queryString);
+        const resultsBuffer = await contract.evaluateTransaction('getHistory', carId);
         return JSON.parse(resultsBuffer.toString());
     } catch (error) {
         throw error;

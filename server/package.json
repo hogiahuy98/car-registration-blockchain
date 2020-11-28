@@ -23,6 +23,8 @@
     "fabric-network": "^2.2.2",
     "jsonwebtoken": "^8.5.1",
     "md5": "^2.3.0",
+    "moment": "^2.29.1",
+    "nanoid": "^3.1.18",
     "uid": "^1.0.0"
   },
   "devDependencies": {

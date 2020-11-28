@@ -7,48 +7,40 @@ export default [
         exact: true,
         name: 'landing',
         path: '/index',
-        component: '../layouts/BlankLayout',
-        routes: [
-          {
-            path: '/index',
-            wrappers: ['@/wrappers/LandingWrappers'],
-            component: './Landing'
-          }
-        ]
+        wrappers: ['@/wrappers/LandingWrappers'],
+        component: './Landing'
       },
       {
         path: '/app',
         component: '../layouts/BasicLayout',
+        wrappers: ['@/wrappers/Citizen'],
         routes: [
+          {
+            path: '/app',
+            redirect: '/app/car-register'
+          }
+          ,
           {
             exact: true,
             name: 'RegistryCar',
-            icon: 'file',
+            icon: 'FormOutlined',
             path: '/app/car-register',
             component: './CarRegister'
           },
-          // {
-          //   path: '/welcome',
-          //   name: 'welcome',
-          //   icon: 'smile',
-          //   component: './Welcome',
-          // },
-          // {
-          //   path: '/admin',
-          //   name: 'admin',
-          //   icon: 'crown',
-          //   component: './Admin',
-          //   authority: ['admin'],
-          //   routes: [
-          //     {
-          //       path: '/admin/sub-page',
-          //       name: 'sub-page',
-          //       icon: 'smile',
-          //       component: './Welcome',
-          //       authority: ['admin'],
-          //     },
-          //   ],
-          // },
+          {
+            exact: true, 
+            name: "ChangeOwner",
+            icon: 'SwapRightOutlined',
+            path: '/app/change-owner',
+            component: './ChangeOwner'
+          },
+          {
+            exact: true, 
+            name: "RegisteredCar",
+            icon: 'CarOutlined',
+            path: '/app/registered-car',
+            component: './RegisteredCar'
+          },
           // {
           //   name: 'list.table-list',
           //   icon: 'table',
@@ -61,6 +53,19 @@ export default [
         ],
       },
       {
+        path: '/police',
+        component: '../layouts/BasicLayout', 
+        routes: [
+          {
+            exact: true,
+            path: '/police/manage-registration',
+            component: './ManageReg',
+            name: "manage-reg"
+          }
+        ]
+      },
+      {
+        // path: '/404',
         component: './404',
       },
     ],

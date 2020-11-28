@@ -1,8 +1,9 @@
 import React, {useEffect, useState, useContext } from 'react';
-import { Menu, Modal, Card, Form, Button, Input, Checkbox } from 'antd';
-import AuthContext from '@/context/AuthContext';
+import { Alert, Form, Button, Input, Checkbox } from 'antd';
 import axios from 'axios';
 import { history } from 'umi';
+
+import {login, fetchCurrentUser } from '@/helpers/Auth'
 
 const serverUrl = 'http://localhost:3000/';
 
@@ -10,7 +11,10 @@ const LoginForm = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [buttonLoading, setButtonLoading] = useState(false);
-    const context = useContext(AuthContext);
+    const [failed, setFailed] = useState(false);
+
+    const auth = fetchCurrentUser()
+
     const handleUsernameInput = (event) => {
         setUsername(event.target.value);
     }
@@ -27,24 +31,18 @@ const LoginForm = () => {
                 url: serverUrl + 'auth/login',
                 data: values,
             });
-        } catch (error) {
-            if (error.message === "Network Error") {
-
+            if (result.data.success) {
+                const user = result.data.data.user;
+                const token = result.data.data.token;
+                login(token, user);
+                if (user.role === 'citizen') history.push('/app');
+                if (user.role === 'police') history.push('/police');
             }
-            result = error.response;
-        }
-        if (result.data.success) {
-            const user = result.data.data.user;
-            const token = result.data.data.token;
-            context.login({
-                token: token,
-                role: user.role,
-                userInfo: user
-            });
-            setTimeout(() => {
-                setButtonLoading(false);
-                history.push('/app/car-register');
-            }, 1500);
+            else setFailed(true);
+        } catch (error) {
+            console.log(error);
+            setButtonLoading(false);
+            setFailed(true);
         }
     }
   
@@ -97,6 +95,7 @@ const LoginForm = () => {
                     Đăng nhập
                 </Button>
             </Form.Item>
+            {failed ? <Alert type='error' message='Tài khoản hoặc mật khẩu không đúng'></Alert> : null}
         </Form>
     )
   }

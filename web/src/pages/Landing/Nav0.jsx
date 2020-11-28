@@ -31,7 +31,7 @@ class Header extends React.Component {
       const { children: a, subItem, ...itemProps } = item;
       return (
         <Item key={item.name} {...itemProps}>
-          <a {...a} className={`header0-item-block ${a.className}`.trim()} onClick={()=>this.loginClick(event)}>
+          <a {...a} className={`header0-item-block ${a.className}`.trim()} onClick={(event)=>this.loginClick(event)}>
             {a.children.map(getChildrenToRender)}
           </a>
         </Item>

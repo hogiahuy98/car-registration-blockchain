@@ -1,20 +1,20 @@
 import { Router, Request, Response } from 'express';
-import { User, registerUser, getUserByPhoneNumber, getId } from '../fabric/user/user.fabric';
+import { User, registerUser, getUserByPhoneNumber, getId } from '../fabric/user/User.fabric';
 import * as bcrypt from 'bcrypt';
-import uid from 'uid';
+import { nanoid } from 'nanoid';
 import * as jwt from 'jsonwebtoken';
 import { FABRIC_ERROR_CODE } from '../constant';
 
 const router = Router();
 
 const jwt_secret = process.env.JWT_SECRET || "blockchain";
-const uidLength = 16;
+
 
 
 router.post('/registry/citizen',async (req: Request, res: Response) => {
     try {
         const citizen: User = {
-            id: uid(uidLength),
+            id: nanoid(),
             fullName: req.body.fullName,
             phoneNumber: req.body.phoneNumber,
             dateOfBirth: req.body.dateOfBirth.toString(),
@@ -40,7 +40,7 @@ router.post('/registry/citizen',async (req: Request, res: Response) => {
 router.post('/registry/police',async (req: Request, res: Response) => {
     try {
         const citizen: User = {
-            id: uid(uidLength),
+            id: nanoid(),
             fullName: req.body.fullName,
             phoneNumber: req.body.phoneNumber,
             dateOfBirth: req.body.dateOfBirth.toString(),
@@ -65,8 +65,8 @@ router.post('/registry/police',async (req: Request, res: Response) => {
 
 router.post('/login', async (req: Request, res: Response) => {
     try {
-        console.log(req.body)
         const user = await getUserByPhoneNumber(req.body.phoneNumber);
+        if(typeof user === 'undefined') return res.send({ success: false, message: "Số điện thoại hoặc mật khẩu không đúng" });
         const isCorrectPassword = await bcrypt.compare(req.body.password, user.Record.password);
         if(!isCorrectPassword) {
             const rs = {
@@ -86,6 +86,7 @@ router.post('/login', async (req: Request, res: Response) => {
         }
         res.status(200).json(rs);
     } catch (error) {
+        console.log(error);
         if (error === FABRIC_ERROR_CODE.IDENTITY_NOT_FOUND_IN_WALLET)
             return res.status(403).send({
                 success: false,

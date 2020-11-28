@@ -16,108 +16,103 @@ import logo from '../assets/logo.png';
 import AuthContext from '@/context/AuthContext';
 
 const noMatch = (
-  <Result
-    status={403}
-    title="403"
-    subTitle="Sorry, you are not authorized to access this page."
-    extra={
-      <Button type="primary">
-        <Link to="/user/login">Go Login</Link>
-      </Button>
-    }
-  />
+    <Result
+        status={403}
+        title="403"
+        subTitle="Sorry, you are not authorized to access this page."
+        extra={
+            <Button type="primary">
+                <Link to="/user/login">Go Login</Link>
+            </Button>
+        }
+    />
 );
 
 /**
  * use Authorized check all menu item
  */
-const menuDataRender = (menuList) =>{
-  const role = 'admin';
-  return menuList.map((item) => {
-    const localItem = {
-      ...item,
-      children: item.children ? menuDataRender(item.children) : undefined,
-    };
-    return localItem;
-  });
-}
+const menuDataRender = (menuList) => {
+    const role = 'sadasd';
+    return menuList.filter((item) => {
+        const localItem = {
+            ...item,
+            children: item.children ? menuDataRender(item.children) : undefined,
+        };
+        if (typeof item.authority === 'object' && !item.authority.includes(role)) return false;
+        return localItem;
+    });
+};
 
 const defaultFooterDom = (
-  <DefaultFooter
-    copyright={`${new Date().getFullYear()} 蚂蚁集团体验技术部出品`}
-    links={[
-      {
-        key: 'Ant Design Pro',
-        title: 'Ant Design Pro',
-        href: 'https://pro.ant.design',
-        blankTarget: true,
-      },
-      {
-        key: 'github',
-        title: <GithubOutlined />,
-        href: 'https://github.com/ant-design/ant-design-pro',
-        blankTarget: true,
-      },
-      {
-        key: 'Ant Design',
-        title: 'Ant Design',
-        href: 'https://ant.design',
-        blankTarget: true,
-      },
-    ]}
-  />
+    <DefaultFooter
+        copyright={`${new Date().getFullYear()} 蚂蚁集团体验技术部出品`}
+        links={[
+            {
+                key: 'Ant Design Pro',
+                title: 'Ant Design Pro',
+                href: 'https://pro.ant.design',
+                blankTarget: true,
+            },
+            {
+                key: 'github',
+                title: <GithubOutlined />,
+                href: 'https://github.com/ant-design/ant-design-pro',
+                blankTarget: true,
+            },
+            {
+                key: 'Ant Design',
+                title: 'Ant Design',
+                href: 'https://ant.design',
+                blankTarget: true,
+            },
+        ]}
+    />
 );
 
 const BasicLayout = (props) => {
-  const { auth } = useContext(AuthContext);
-  const {
-    children,
-    settings,
-  } = props;
-  const { formatMessage } = useIntl();
-  if (!auth.isAuth) {
-    return <Redirect to='/index'></Redirect>
-  }
-  return (
-    <ProLayout
-      logo={logo}
-      formatMessage={formatMessage}
-      {...props}
-      {...settings}
-      siderWidth={250}
-      onMenuHeaderClick={() => history.push('/')}
-      menuItemRender={(menuItemProps, defaultDom) => {
-        if (menuItemProps.isUrl || !menuItemProps.path) {
-          return defaultDom;
-        }
+    const { children, settings } = props;
+    const { formatMessage } = useIntl();
+    return (
+        <ProLayout
+            logo={logo}
+            formatMessage={formatMessage}
+            {...props}
+            {...settings}
+            siderWidth={250}
+            onMenuHeaderClick={() => history.push('/')}
+            menuItemRender={(menuItemProps, defaultDom) => {
+                if (menuItemProps.isUrl || !menuItemProps.path) {
+                    return defaultDom;
+                }
 
-        return <Link to={menuItemProps.path}>{defaultDom}</Link>;
-      }}
-      breadcrumbRender={(routers = []) => [
-        {
-          path: '/',
-          breadcrumbName: formatMessage({
-            id: 'menu.home',
-          }),
-        },
-        ...routers,
-      ]}
-      itemRender={(route, params, routes, paths) => {
-        const first = routes.indexOf(route) === 0;
-        return first ? (
-          <Link to={paths.join('/')}>{route.breadcrumbName}</Link>
-        ) : (
-          <span>{route.breadcrumbName}</span>
-        );
-      }}
-      footerRender={() => defaultFooterDom}
-      menuDataRender={menuDataRender}
-      rightContentRender={() => <RightContent />}
-      title={"CSGT.VN"}
-    >
-        {children}
-    </ProLayout>
-  );
+                return <Link to={menuItemProps.path}>{defaultDom}</Link>;
+            }}
+            breadcrumbRender={(routers = []) => [
+                {
+                    path: '/',
+                    breadcrumbName: formatMessage({
+                        id: 'menu.home',
+                    }),
+                },
+                ...routers,
+            ]}
+            itemRender={(route, params, routes, paths) => {
+                const first = routes.indexOf(route) === 0;
+                return first ? (
+                    <Link to={paths.join('/')}>{route.breadcrumbName}</Link>
+                ) : (
+                    <span>{route.breadcrumbName}</span>
+                );
+            }}
+            footerRender={() => defaultFooterDom}
+            menuDataRender={menuDataRender}
+            rightContentRender={() => <RightContent />}
+            title={'CSGT.VN'}
+            layout='side'
+        >
+            {children}
+        </ProLayout>
+    );
 };
 
 export default BasicLayout;

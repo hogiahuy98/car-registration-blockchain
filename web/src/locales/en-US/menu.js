@@ -50,4 +50,7 @@ export default {
   'menu.editor.mind': 'Mind Editor',
   'menu.editor.koni': 'Koni Editor',
   'menu.RegistryCar': 'Đăng ký xe',
+  'menu.RegisteredCar': 'Danh sách xe',
+  'menu.ChangeOwner': "Chuyển quyền sở hữu xe",
+  'menu.manage-reg': "Quản lí đăng ký xe",
 };

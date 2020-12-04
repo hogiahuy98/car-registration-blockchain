@@ -113,7 +113,7 @@ export class UserContract extends Contract {
             fullName: params[2],
             phoneNumber: params[3],
             dateOfBirth: params[4],
-            ward: params[5],
+            address: params[5],
             identityCardNumber: params[6],
             role: params[7],
             docType: 'user',
@@ -126,7 +126,7 @@ export class UserContract extends Contract {
         const police: User = {
             id: "CSGT",
             fullName: "Phạm Văn Cảnh",
-            ward: "Ninh Kieu",
+            address: "",
             dateOfBirth: "TEST",
             identityCardNumber: "385743821",
             role: "police",
@@ -140,7 +140,7 @@ export class UserContract extends Contract {
         const user: User = {
             id: "iijfsuwbzosdbdsj",
             fullName: "Hồ Gia Huy",
-            ward: "Ninh Kieu",
+            address: "Ninh Kieu",
             dateOfBirth: new Date('10/01/1998').toString(),
             identityCardNumber: "385752739",
             role: "citizen",

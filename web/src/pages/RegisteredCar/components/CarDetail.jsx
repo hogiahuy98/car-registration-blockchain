@@ -9,6 +9,9 @@ import { fetchCurrentUser } from '@/helpers/Auth'
 const TIMELINE_ACTION_TYPE = [
     "Đăng ký lên hệ thống",
     "CSGT đăng kiểm, bấm biển số",
+    "Huỷ đăng ký",
+    "Chuyển đổi quyền sở hữu",
+    "Thay đổi thông tin xe"
 ]
 
 export default (props) => {
@@ -28,12 +31,10 @@ export default (props) => {
             const url = `${DEFAULT_HOST}/cars/${car.id}/history`;
             try {
                 const result = await axios.get(url, config);
-                // console.log(result);
                 if (result.data.length > 0) {
                     const arr =result.data;
                     const tl = arr.map(element => {
                         element.Value.time = moment(element.Timestamp.seconds.low * 1000).locale('en').format("D/MM/YYYY, hh:mm:ss A");
-                        console.log(element);
                         return element.Value;
                     })
                     setTimeline(tl.reverse());
@@ -49,7 +50,7 @@ export default (props) => {
 
     return (
     <Card size='small' title={title} loading={false}>
-            <Descriptions column={2}>
+            <Descriptions column={2} bordered style={{borderColor: 'white'}}>
                 <Descriptions.Item label={DESCRIPTION_LABEL.REGISTRATION_DATE}>
                     Ngày {car.registrationDate}
                 </Descriptions.Item>

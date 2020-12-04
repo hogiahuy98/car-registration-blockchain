@@ -13,7 +13,7 @@ const changeOwnerFormTitle = <Typography.Text strong>Chuyển quyền sở hữu
 const procedureChangeOwnerTitle  = <Typography.Text strong>Quy trình chuyển quyền sở hữu xe (sang tên xe)</Typography.Text>
 
 export default () => {
-    const [reload, setReload] = useState(false);
+    const [reload, setReload] = useState(0);
     const [hasTransferReqest, setHasTransferRequest] = useState(false);
     const [request, setReqest] = useState({})
     
@@ -30,17 +30,22 @@ export default () => {
             const url = DEFAULT_HOST + path.join('/users', auth.id, 'transferRequest');
             try {
                 const result = await axios.get(url, config);
+                console.log(result);
                 if (result.data !== '') setReqest(result.data);
             } catch (error) {
                 console.log(error);
             }
         }
         f();
-    }, []);
+    }, [reload]);
 
     useEffect(() => {
         if(request.Key) setHasTransferRequest(true);
     }, [request])
+
+    const reloadF = () => {
+        setReload(reload + 1);
+    }
 
     return (
         <PageContainer>
@@ -50,7 +55,7 @@ export default () => {
                         <>
                             <Row>
                                 <Col span={24}>
-                                    <TransferRequestForm request={request.Record} />
+                                    <TransferRequestForm reload={reloadF} request={request.Record} />
                                 </Col>
                             </Row>
                             <Divider />
@@ -60,7 +65,7 @@ export default () => {
                     <Row>
                         <Col span={24}>
                             <Card title={changeOwnerFormTitle}>
-                                <ChangeOwnerForm reload={setReload} />
+                                <ChangeOwnerForm reload={reloadF} />
                             </Card>
                         </Col>
                         <Divider />

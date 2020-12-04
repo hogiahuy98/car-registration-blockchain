@@ -1,5 +1,5 @@
 import React, {useEffect, useContext} from 'react';
-import { Card, Table, Space, Button, Modal } from 'antd';
+import { Card, Table, Space, Button, Modal, Typography } from 'antd';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useState } from 'react';
 import { DEFAULT_HOST } from '@/host'
@@ -9,7 +9,8 @@ import moment from 'moment';
 import CarDetail from './components/CarDetail';
 import { fetchCurrentUser, logout } from '@/helpers/Auth';
 
- 
+const {Text} = Typography; 
+
 export default () => {
     const [cars, setCars] = useState([]);
     const [tableLoading, setTableLoading] = useState(true);
@@ -45,6 +46,15 @@ export default () => {
             key: 'registrationDate'
         },
         {
+            title: 'Trạng thái',
+            dataIndex: 'registrationState',
+            key: 'registrationState',
+            render: (text) => {
+                if(text === 'registered') return <Text type='success'>Đã đăng ký</Text>
+                if(text === 'transferring_ownership') return <Text type='warning'>Đang chuyển quyền sở hữu</Text>
+            }
+        },
+        {
             title: '',
             key: 'action',
             render: (text, record) => (
@@ -77,6 +87,7 @@ export default () => {
     }, [])
 
     useEffect(() => {
+        console.log(cars)
         if (typeof car.id !== 'undefined')
             setDetailVisible(true);
     }, [car]);
@@ -89,7 +100,7 @@ export default () => {
     return (
         <PageContainer>
             <Card >
-                <Table loading={tableLoading} columns={columns} dataSource={cars}>
+                <Table style={{minHeight: '400px'}} loading={tableLoading} columns={columns} dataSource={cars}>
 
                 </Table>
             </Card>

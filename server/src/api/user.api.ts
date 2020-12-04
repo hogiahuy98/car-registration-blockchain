@@ -15,7 +15,6 @@ router.get('/me', authentication, async (req: Request, res: Response) => {
 router.get('/validateChangeOwner', authentication, async (req: Request, res: Response) => {
     const phoneNumber = req.query.pn;
     const fullName = req.query.n;
-    console.log(req.query)
     if (typeof phoneNumber === 'undefined' || typeof fullName === 'undefined') return res.sendStatus(403);
     const queryString: any = {};
     queryString.selector = {
@@ -46,10 +45,13 @@ router.get('/:id', authentication, async (req: Request, res: Response) => {
 router.get('/:id/transferRequest', authentication, async (req: Request, res: Response) => {
     const queryResult: any = {}
     queryResult.selector = {
-        docType: 'transfer',
+        docType: "transfer",
         newOwner: req.user.id,
-        state: 0,
-    }
+        $or: [
+            { state: 0 },
+            { state: 1 },
+        ],
+    };
     const result = await queryCars(req.user.id, JSON.stringify(queryResult));
     res.json(result[0]);
 })

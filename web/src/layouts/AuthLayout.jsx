@@ -16,6 +16,7 @@ const AuthLayout = (props) => {
 
     useEffect(() => {
         const f = async () => {
+            const appName = history.location.pathname.split('/')[1];
             try {
                 const result = await axios.get('http://localhost:3000/users/me', {
                     headers: {
@@ -31,9 +32,7 @@ const AuthLayout = (props) => {
         f();
     })
 
-    const appName = history.location.pathname.split('/')[1];
 
-    if (!user && history.location.pathname !== '/index') return <Redirect to='/index'></Redirect>;
     
     
 

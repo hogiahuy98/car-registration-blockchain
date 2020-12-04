@@ -14,7 +14,7 @@ const jwt_secret = process.env.JWT_SECRET || "blockchain";
 router.post('/registry/citizen',async (req: Request, res: Response) => {
     try {
         const citizen: User = {
-            id: nanoid(),
+            id: 'U' + nanoid().toUpperCase(),
             fullName: req.body.fullName,
             phoneNumber: req.body.phoneNumber,
             dateOfBirth: req.body.dateOfBirth.toString(),
@@ -23,7 +23,6 @@ router.post('/registry/citizen',async (req: Request, res: Response) => {
             role: "citizen",
             ward: req.body.ward
         }
-    
         await registerUser(citizen);
         return res.status(201).json({
             success: true,
@@ -40,7 +39,7 @@ router.post('/registry/citizen',async (req: Request, res: Response) => {
 router.post('/registry/police',async (req: Request, res: Response) => {
     try {
         const citizen: User = {
-            id: nanoid(),
+            id: 'U' + nanoid().toUpperCase(),
             fullName: req.body.fullName,
             phoneNumber: req.body.phoneNumber,
             dateOfBirth: req.body.dateOfBirth.toString(),

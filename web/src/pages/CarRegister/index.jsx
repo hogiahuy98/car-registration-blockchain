@@ -20,7 +20,7 @@ export default () => {
     const [spin, setSpin] = useState(true);
     const [pending, setPending] = useState(false);
     const [registration, setRegistration] = useState({});
-    const [reload, setReload] = useState(false);
+    const [reload, setReload] = useState(0);
 
     const auth = fetchCurrentUser();
 
@@ -54,9 +54,9 @@ export default () => {
     return (
         <PageContainer>
             <Row>
-                <Col span={12} >
+                <Col span={12}>
                     <Spin spinning={spin} indicator={icon} style={{backgroundColor: 'white'}}>
-                        {pending ? <Description registration={registration} /> : <CarRegisterForm reload={setReload} title={mainTitle}/>}
+                        {pending ? <Description reload={() => setReload(reload + 1)} registration={registration} /> : <CarRegisterForm reload={() => setReload(reload + 1)} title={mainTitle}/>}
                     </Spin>
                 </Col>
                 <Col span={12} style={{paddingLeft: '20px'}}>

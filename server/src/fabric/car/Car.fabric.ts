@@ -7,7 +7,6 @@ export { Car } from './CarInterface'
 export async function registryCar(car: Car, phoneNumber: string) {
     try {
         const contract = await getCarContract(phoneNumber);
-        console.log(car);   
         const params: Array<string> = [
             car.id,
             car.engineNumber,
@@ -19,10 +18,22 @@ export async function registryCar(car: Car, phoneNumber: string) {
             car.capality,
             car.owner,
         ]
-        const TxID = await contract.submitTransaction('registryCar', ...params);
-        return { success: true, result: { TxID: TxID.toString() } };
+        const result = await contract.submitTransaction('createRegistration', ...params);
+        return { success: true, result: JSON.parse(result.toString()) };
     } catch (error) {
         return { success: false, result: { error: error } };
+    }
+}
+
+
+export async function updateRegistration(userId: string, carId: string, payload: any) {
+    try {
+        const contract = await getCarContract(userId);
+        const result = await contract.submitTransaction('updateRegistration', carId, JSON.stringify(payload));
+        return JSON.parse(result.toString());
+    } catch (error) {
+        console.log(error);
+        throw error;
     }
 }
 
@@ -44,9 +55,10 @@ export async function getCarById(phoneNumber: string, carId: string) {
         const contract = await getCarContract(phoneNumber);
         const carsAsBuffer = await contract.evaluateTransaction('queryCarById', carId);
         const car = JSON.parse(carsAsBuffer.toString());
-        return { success: true, result: { car } };
+        return car;
     } catch (error) {
-        return { success: false, result: { error: error } }
+        console.log(error);
+        return null
     }
 }
 
@@ -83,7 +95,7 @@ export async function acceptCarRegistration(carId: string, registrationNumber: s
     }
 }
 
-export async function rejectCarRegistration(carId: string, registrationNumber: string, phoneNumber: string) {
+export async function rejectCarRegistration(carId: string, phoneNumber: string) {
     try {
         const contract = await getCarContract(phoneNumber);
         const TxID = await contract.submitTransaction('rejectRegistration', carId);
@@ -121,7 +133,7 @@ export async function isOwnerOfCar(carId: string, userId: string): Promise<any> 
 export async function requestChangeOwner(carId: string,  newOwner: string, currentOwner: string) {
     try {
         const contract = await getCarContract(currentOwner);
-        const dealId = nanoid();
+        const dealId = 'D' + nanoid().toUpperCase();
         const TxIDByte = await contract.submitTransaction('createTransferDeal', dealId, carId, currentOwner, newOwner);
         const TxID = TxIDByte.toString();
         if( TxID !== "" || TxID.length !== 0) {
@@ -139,7 +151,31 @@ export async function requestChangeOwner(carId: string,  newOwner: string, curre
 export async function approveTransferDeal(userId: string, dealId: string){
     try {
         const contract = await getCarContract(userId);
-        const TxID = await contract.evaluateTransaction('approveTransfer', dealId);
+        const TxID = await contract.submitTransaction('approveTransfer', dealId);
+        if(TxID.toString() === "PERMISSION DENIED") throw new Error(TxID.toString());
+        return TxID.toString();
+    } catch (error) {
+        console.log(error);
+        return undefined;
+    }
+}
+
+export async function confirmTransferDeal(userId: string, dealId: string){
+    try {
+        const contract = await getCarContract(userId);
+        const TxID = await contract.submitTransaction('confirmTransfer', dealId);
+        if(TxID.toString() === "PERMISSION DENIED") throw new Error(TxID.toString());
+        return TxID.toString();
+    } catch (error) {
+        console.log(error);
+        return undefined;
+    }
+}
+
+export async function rejectTransferDeal(userId: string, dealId: string){
+    try {
+        const contract = await getCarContract(userId);
+        const TxID = await contract.submitTransaction('rejectTransfer', dealId);
         if(TxID.toString() === "PERMISSION DENIED") throw new Error(TxID.toString());
         return TxID.toString();
     } catch (error) {

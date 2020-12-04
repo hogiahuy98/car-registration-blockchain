@@ -30,9 +30,5 @@ export const REGISTRATION_FIELD = {
     ENGINE_NUMBER: {
         LABEL: 'Số máy',
         NAME: 'engineNumber'
-    },
-    REG_ID: {
-        LABEL: 'Mã đăng ký',
-        NAME: 'id'
     }
 }

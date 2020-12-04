@@ -1,5 +1,4 @@
 import React, { useContext, useState, useEffect } from 'react';
-import AuthContext from '@/pages/CarRegister/node_modules/@/context/AuthContext';
 import { Button, Space, Card, Form, Input, Checkbox, Row, Col } from 'antd';
 import { Redirect, history } from 'umi';
 import Axios from 'axios';
@@ -13,7 +12,6 @@ import styles from './index.less';
 //   };
 
 const Login = (props) => {
-    const context = useContext(AuthContext);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 

@@ -18,8 +18,7 @@ export default [
           {
             path: '/app',
             redirect: '/app/car-register'
-          }
-          ,
+          },
           {
             exact: true,
             name: 'RegistryCar',
@@ -57,10 +56,25 @@ export default [
         component: '../layouts/BasicLayout', 
         routes: [
           {
+            path: '/police',
+            redirect: '/police/manage-registration'
+          },
+          {
             exact: true,
             path: '/police/manage-registration',
             component: './ManageReg',
             name: "manage-reg"
+          },{
+            exact: true,
+            path: '/police/manage-citizen',
+            name: 'manage-citizen',
+            component: './ManageReg',
+          },
+          {
+            path: '/police/read-registration/:id',
+            component: './DetailRegistration',
+            name: 'read',
+            hideInMenu: true,
           }
         ]
       },
@@ -73,4 +87,5 @@ export default [
   {
     component: './404',
   },
+
 ];

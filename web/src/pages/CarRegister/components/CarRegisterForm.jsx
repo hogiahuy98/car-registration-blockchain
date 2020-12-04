@@ -9,7 +9,7 @@ import { fetchCurrentUser, logout } from '@/helpers/Auth';
 
 export default (props) => {
     const [successModalVisible, setSucessModalVisible] = useState(false);
-    const [txid, setTxid] = useState();
+    const [tx, setTx] = useState({});
     const [posting, setPosting] = useState(false);
     const { reload } = props;
     const auth = fetchCurrentUser()
@@ -26,7 +26,8 @@ export default (props) => {
             const result = await axios.post(url, values, config);
             setPosting(false);
             if (result.data.success && result.data.result.TxID) {
-                await setTimeout(()=> setTxid(result.data.result.TxID, 3000));
+                console.log(result.data)
+                await setTimeout(()=> setTx(result.data.result, 3000));
                 setSucessModalVisible(true);
             }
         } catch (error) {
@@ -59,8 +60,8 @@ export default (props) => {
             <Form
                 autoComplete="off"
                 labelAlign="left"
-                labelCol={{ span: 6, offset: 1 }}
-                wrapperCol={{ span: 12 }}
+                labelCol={{ span: 6}}
+                wrapperCol={{ span: 18 }}
                 onFinish={formFinish}
                 onFinishFailed={() => setPosting(false)}
             >
@@ -124,7 +125,7 @@ export default (props) => {
                 >
                     <Input disabled={posting} placeholder="Số máy" />
                 </Form.Item>
-                <Form.Item wrapperCol={{ offset: 7 }}>
+                <Form.Item wrapperCol={{ offset: 8 }}>
                     <Button
                         htmlType="submit"
                         type="primary"
@@ -139,14 +140,14 @@ export default (props) => {
                 visible={successModalVisible}
                 onCancel={() => {
                     setSucessModalVisible(false);
-                    reload(true);
+                    reload();
                 }}
                 footer={null}
             >
                 <Result
                     status='success'
                     title='Đăng ký thành công'
-                    subTitle={"Mã giao dịch: " + txid}
+                    subTitle={"Mã đăng ký: " + tx.regId}
                 >
                 </Result>
             </Modal>

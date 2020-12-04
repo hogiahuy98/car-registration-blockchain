@@ -9,6 +9,7 @@ export class Car {
     public capality: string;
     public owner: string;
     public year: string;
+    public type?: string;
     public createTime?: string;
     public modifyTime?: string;
     public modifyType?: Number;
@@ -29,5 +30,6 @@ export class TransferDeal {
     public modifyTime?: string;
     public acceptTime?: string;
     public rejectTime?: string;
+    public rejectUser?: string;
     public docType: string;
 }

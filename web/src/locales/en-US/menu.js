@@ -53,4 +53,7 @@ export default {
   'menu.RegisteredCar': 'Danh sách xe',
   'menu.ChangeOwner': "Chuyển quyền sở hữu xe",
   'menu.manage-reg': "Quản lí đăng ký xe",
+  'menu.detail-reg': "Chi tiết đăng ký",
+  'menu.read': 'Chi tiết đăng ký',
+  'menu.manage-citizen': "Quản lí người đăng ký"
 };

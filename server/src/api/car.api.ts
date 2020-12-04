@@ -11,11 +11,15 @@ import {registryCar,
         requestChangeOwner,
         queryCars,
         getHistoryOfCar,
-        approveTransferDeal
+        approveTransferDeal,
+        updateRegistration,
+        confirmTransferDeal,
+        rejectTransferDeal
 } from '../fabric/car/Car.fabric';
 import { nanoid } from 'nanoid';
 import { authentication } from '../middleware/auth.middleware';
 import { getUserById } from '../fabric/user/User.fabric';
+import randomstring from 'randomstring';
 
 const router = Router();
 
@@ -24,7 +28,7 @@ router.post('/', authentication, async (req: Request, res: Response) => {
     try {
         const userId = req.user.id;
         const car: Car = {
-            id: nanoid(),
+            id: 'C' + nanoid().toUpperCase(),
             brand: req.body.brand,
             color: req.body.color,
             model: req.body.model,
@@ -50,12 +54,11 @@ router.get('/', authentication, async (req: Request, res: Response) => {
         const user = await getUserById(car.owner);
         delete user.password
         car.owner = user;
-        
         return car;
     }))
-    console.log(result)
     res.json(result);
 });
+
 
 router.get('/checkEngineNumber', authentication, async (req: Request, res: Response) => {
     const engineNumber = req.query.en;
@@ -119,6 +122,30 @@ router.post('/transfer/:dealId/approveTransfer/', authentication, async (req: Re
     }
 })
 
+
+router.post('/transfer/:dealId/confirmTransfer/', authentication, async (req: Request, res: Response) => {
+    try {
+        const TxID = await confirmTransferDeal(req.user.id, req.params.dealId);
+        if(typeof TxID === 'undefined') return res.send({ success: false })
+        else return res.send({ success: true, TxID})
+    } catch (error) {
+        console.log(error);
+        return res.send({ success: false });
+    }
+})
+
+router.post('/transfer/:dealId/rejectTransfer', authentication, async (req: Request, res:Response) => {
+    try {
+        const TxID = await rejectTransferDeal(req.user.id, req.params.dealId);
+        if (typeof TxID === 'undefined') return res.send({ success: false })
+        else return res.send({ success: true, TxID})
+    } catch (error) {
+        console.log(error);
+        return res.send({ success: false });
+    }
+})
+
+
 router.get('/:id', authentication, async (req: Request, res: Response) => {
     const queryString: any = {};
     queryString.selector = {
@@ -129,36 +156,101 @@ router.get('/:id', authentication, async (req: Request, res: Response) => {
     res.json(result[0]);
 });
 
-router.get('/:id/history', authentication, async (req: Request, res: Response) => {
-    const id = req.user.id;
-    const carHistory = await getHistoryOfCar(id, req.params.id)
-    res.send(carHistory);
+router.get('/:id/transferDeal', authentication, async (req: Request, res: Response) => {
+    try {
+        const queryString: any = {};
+        queryString.selector = {
+            docType: 'transfer',
+            carId: req.params.id,
+        }
+        const result = await queryCars(req.user.id, JSON.stringify(queryString));
+        const deal = result[0].Record;
+        const currentOwner = await getUserById(deal.currentOwner);
+        const newOwner = await getUserById(deal.newOwner);
+        const car = await getCarById(req.user.id,deal.carId);
+        deal.currentOwner = currentOwner;
+        deal.newOwner = newOwner;
+        deal.car = car.Record;
+        return res.send(deal);
+    } catch (error) {
+        console.log(error);
+        res.sendStatus(404);
+    }
+});
+
+
+router.put('/:id', authentication, async (req: Request, res: Response) => {
+    try {
+        const payload = req.body;
+        const result  = await updateRegistration(req.user.id, req.params.id, payload);
+        if (!result.error) return res.send({success: true});
+        else return res.send({success: false, error: result.error});
+    } catch (error) {
+        return res.send({success: false, error: 'Fabric error'});
+    }
 })
 
-router.put('/:id/acceptRegistration/', authentication, async (req: Request, res: Response) => {
-    if (req.user.role !== 'police') {
-        return res.sendStatus(401);
-    }
+
+router.get('/:id/history', authentication, async (req: Request, res: Response) => {
     const id = req.user.id;
-    const acceptRegistrationResult = await acceptCarRegistration(req.params.id, req.body.registrationNumber, id);
-    if (!acceptRegistrationResult.success) {
-        console.log(acceptRegistrationResult);
-        return res.sendStatus(403);
-    }
-    else {
-        return res.json({ TxID: acceptRegistrationResult.result.TxID });
+    const carHistory = await getHistoryOfCar(id, req.params.id);
+    const result = await Promise.all(carHistory.map( async (state: any) => {
+        const queryString: any = {};
+        queryString.selector = {
+            docType: 'user',
+            id: state.Value.modifyUser,
+        }
+        const result = await queryCars(id, JSON.stringify(queryString));
+        state.Value.modifyUser = result[0].Record
+        return state
+    }))
+    res.send(result);
+})
+
+
+router.put('/:id/acceptRegistration/', authentication, async (req: Request, res: Response) => {
+    try {
+        if (req.user.role !== 'police') {
+            return res.sendStatus(401);
+        }
+        const id = req.user.id;
+        let validNumber = false;
+        let registrationNumber = "";
+        while (!validNumber){
+            registrationNumber = randomstring.generate({
+                length: 5,
+                charset: 'numeric'
+            });
+            const queryString: any = {}
+            queryString.selector = {
+                docType: 'car',
+                registrationNumber
+            }
+            const result = await queryCars(id, JSON.stringify(queryString));
+            if(result.length === 0)  validNumber = true;
+        }
+        const acceptRegistrationResult = await acceptCarRegistration(req.params.id, "64A-" + registrationNumber, id);
+        if (!acceptRegistrationResult.success) {
+            return res.sendStatus(403);
+        }
+        else {
+            return res.json({ TxID: acceptRegistrationResult.result.TxID, error: false});
+        }
+    } catch (error) {
+        console.log(error);
+        res.send({error: true});
     }
 });
 
 
 router.put('/:carId/rejectRegistration/', authentication, async (req: Request, res: Response) => {
-    if (req.user.role !== 'police') {
-        return res.sendStatus(401);
-    }
-    const identityCardNumber = req.user.identityCardNumber;
-    const acceptRegistrationResult = await rejectCarRegistration(req.params.carId, req.body.registrationNumber, identityCardNumber);
+    // if (req.user.role !== 'police') {
+    //     return res.sendStatus(401);
+    // }
+    const id = req.user.id;
+    const acceptRegistrationResult = await rejectCarRegistration(req.params.carId, id);
+    console.log(acceptRegistrationResult)
     if (!acceptRegistrationResult.success) {
-        console.log(acceptRegistrationResult);
         return res.sendStatus(403);
     }
     else {
